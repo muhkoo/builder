@@ -1,0 +1,14 @@
+{
+  "name": "muhkoo-app-builder",
+  "displayName": "Muhkoo App Builder",
+  "version": "0.1.0",
+  "description": "Describe an app idea in plain language and build it end-to-end on Muhkoo: provision the backend (app key, database tables, channels, agents, serverless functions) and scaffold a working Vite + React client against the @muhkoo/connect SDK.",
+  "author": {
+    "name": "Muhkoo",
+    "email": "hello@muhkoo.dev"
+  },
+  "homepage": "https://docs.muhkoo.dev",
+  "license": "MIT",
+  "keywords": ["muhkoo", "scaffolding", "full-stack", "zk-auth", "edge", "react"],
+  "skills": "./skills/"
+}

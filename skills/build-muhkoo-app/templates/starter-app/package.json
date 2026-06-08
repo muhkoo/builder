@@ -1,0 +1,46 @@
+{
+  "name": "muhkoo-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "A Muhkoo app scaffolded by the app-builder plugin.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "eject:agent": "tsx --tsconfig ./tsconfig.app.json src/agent/eject.ts",
+    "deploy": "npm run build && wrangler deploy",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "test:e2e": "start-server-and-test dev http://localhost:5173 cy:run"
+  },
+  "dependencies": {
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "@muhkoo/connect": "file:../connect",
+    "@mui/icons-material": "^6",
+    "@mui/material": "^6",
+    "@noble/curves": "^2.2.0",
+    "circomlibjs": "^0.1.7",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "snarkjs": "^0.7.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "cypress": "^15.16.0",
+    "rollup": "^4.60.4",
+    "start-server-and-test": "^2.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12",
+    "vite-plugin-node-polyfills": "^0.28.0",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.6.0",
+    "wrangler": "^4.95.0"
+  }
+}

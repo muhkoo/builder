@@ -1,0 +1,70 @@
+{
+  "slug": "task-board-demo",
+  "allowedOrigins": "*",
+  "email": "mattgagliardo213@gmail.com",
+  "tables": [
+    {
+      "table": "tasks",
+      "columns": [
+        {
+          "name": "title",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "done",
+          "type": "boolean",
+          "nullable": false,
+          "default": false
+        },
+        {
+          "name": "owner",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_tasks_done",
+          "columns": [
+            "done"
+          ]
+        }
+      ]
+    }
+  ],
+  "agents": [
+    {
+      "handle": "@helper",
+      "displayName": "Task Helper",
+      "model": "openai/gpt-oss-120b",
+      "enableChannel": "general",
+      "triggers": [
+        {
+          "type": "mention"
+        }
+      ],
+      "caps": {
+        "dailyTokenBudget": 100000
+      },
+      "systemPrompt": "You are Task Helper. A helpful assistant inside Task Board — a shared team task list. You read and reply to messages in the channel where you're @-mentioned, and you can look at and add tasks.\n\nGuidance:\n- Keep replies short and friendly.\n- Only respond when you're @-mentioned or clearly addressed.\n- When asked what's on the list or to add a task, use your database tools instead of guessing.\n\nChannels (Spaces) you can resolve with resolve_channel and post messages into:\n- general: The team-wide task channel.\n\nApp database tables:\n- tasks (read & write — db_query/db_get/db_insert/db_update/db_delete): Team tasks: a `title` and a `done` flag. List, add, or tick off when asked.\n\nHow to respond:\n- When you need information or need to make a change, call your tools immediately — don't ask the user to do it, and don't describe or name the tools to them.\n- After your tool calls return, you MUST send one final reply to the channel, in plain language, that answers the request using the results.\n- Always end your turn with a short written reply (one or two sentences). Never finish with only tool calls and no message, and never reply with an empty message.\n- Don't restate function names, parameters, JSON, or your list of tools to the user — just give them the answer.\n\nThe exact columns, function parameters, and the full list of callable tools are supplied to you by the runtime. Follow that authoritative list — never invent tables, columns, functions, or tools.",
+      "tools": {
+        "enabled": true,
+        "db": {
+          "mode": "write",
+          "tables": [
+            "tasks"
+          ]
+        },
+        "functions": [],
+        "channels": true,
+        "maxIterations": 6
+      }
+    }
+  ]
+}

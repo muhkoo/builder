@@ -1,0 +1,73 @@
+/*
+ * Task Board — neo-brutalist editorial design pass.
+ * Warm paper, black ink, one vivid green, hard offset shadows, no blur.
+ * (Design layer only — the data wiring + data-cy hooks are untouched.)
+ */
+:root {
+  --paper: #f3ead6;
+  --paper-2: #efe4cb;
+  --ink: #181510;
+  --ink-soft: #5b5340;
+  --line: #181510;
+  --green: #18b85a;
+  --green-ink: #0b1a0f;
+  --coral: #ff5b35;
+  --shadow: 5px 5px 0 var(--ink);
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --display: "Bricolage Grotesque", "Spline Sans", system-ui, sans-serif;
+  --body: "Spline Sans", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--paper);
+  /* Faint engineering grid + grain for atmosphere (not a flat fill). */
+  background-image:
+    linear-gradient(rgba(24, 21, 16, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 21, 16, 0.045) 1px, transparent 1px);
+  background-size: 26px 26px;
+  color: var(--ink);
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* A loud editorial label style reused across surfaces. */
+.bd-eyebrow {
+  font-family: var(--mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+/* Staggered page-load reveal — one orchestrated moment. The resting state is
+ * fully visible; `backwards` fill applies the from-state only during the delay,
+ * so content is never hidden if the animation doesn't run. */
+@keyframes bd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.bd-rise {
+  animation: bd-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.bd-rise-1 { animation-delay: 0.04s; }
+.bd-rise-2 { animation-delay: 0.12s; }
+.bd-rise-3 { animation-delay: 0.2s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-rise { animation: none; }
+}

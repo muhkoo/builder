@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Rename to your app's slug. `wrangler deploy` publishes the built SPA in
+  // ./dist as a static-assets-only Worker (no server code).
+  "name": "muhkoo-app",
+  // Add your Cloudflare account id (or set CLOUDFLARE_ACCOUNT_ID in the env).
+  // "account_id": "…",
+  "compatibility_date": "2025-01-15",
+  "assets": {
+    "directory": "./dist",
+    // Serve index.html for client-side routes so deep links / refreshes work.
+    "not_found_handling": "single-page-application"
+  },
+  "observability": { "enabled": true }
+}

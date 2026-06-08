@@ -1,0 +1,214 @@
+/**
+ * Realtime end-to-end-encrypted channel (see CHANNEL in ../appConfig.ts). Joins
+ * the named channel (creating it the first time), replays history, and streams
+ * live messages. Messages are sealed with a shared group key the server can't read.
+ */
+import { useEffect, useRef, useState } from "react";
+import { Box, Button, Paper, Stack, TextField, Typography } from "@mui/material";
+import { getClient } from "../lib/client";
+import { CHANNEL } from "../appConfig";
+
+interface ChatLine {
+  key: string;
+  from: string;
+  text: string;
+}
+
+/** Pull the text out of a sealed message body ({ contents } by convention). */
+function textOf(body: unknown): string {
+  if (body && typeof body === "object" && "contents" in body) {
+    const c = (body as { contents?: unknown }).contents;
+    return typeof c === "string" ? c : JSON.stringify(c);
+  }
+  return typeof body === "string" ? body : JSON.stringify(body);
+}
+
+export function ChannelChat() {
+  const [lines, setLines] = useState<ChatLine[]>([]);
+  const [text, setText] = useState("");
+  const [status, setStatus] = useState("connecting…");
+  const [ready, setReady] = useState(false);
+  const spaceRef = useRef<Awaited<ReturnType<ReturnType<typeof getClient>["space"]["joinChannel"]>> | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!CHANNEL) return;
+    let disposed = false;
+    let unsub: (() => void) | undefined;
+
+    (async () => {
+      setStatus("connecting…");
+      const client = getClient();
+      let space;
+      try {
+        space = await client.space.joinChannel(CHANNEL);
+      } catch {
+        // Channel doesn't exist yet — create it (first run).
+        space = await client.space.createChannel(CHANNEL);
+      }
+      if (disposed) return;
+      spaceRef.current = space;
+
+      // Subscribe before keying so we never miss a message.
+      unsub = space.onMessage((e) => {
+        if (disposed) return;
+        setLines((prev) => {
+          const key = String(e.handle);
+          if (prev.some((l) => l.key === key)) return prev;
+          return [...prev, { key, from: e.from, text: textOf(e.message.body) }];
+        });
+      });
+
+      // A channel is end-to-end encrypted: we can only send/read once we hold the
+      // group key. `joinChannel` requests it; poll until it arrives.
+      setStatus("securing channel…");
+      const keyring = space.keyring;
+      const deadline = Date.now() + 25_000;
+      while (!disposed && keyring && !keyring.hasAnyKey() && Date.now() < deadline) {
+        try { await keyring.pullKeys(); } catch { /* keep waiting */ }
+        if (keyring.hasAnyKey()) break;
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      if (disposed) return;
+      if (keyring && !keyring.hasAnyKey()) {
+        setStatus("could not obtain channel key");
+        return;
+      }
+      setReady(true);
+      setStatus("connected");
+
+      try {
+        const { messages } = await space.history({ limit: 100 });
+        if (!disposed) {
+          setLines((prev) => {
+            const seen = new Set(prev.map((l) => l.key));
+            const hist = messages
+              .filter((e) => !seen.has(String(e.handle)))
+              .map((e) => ({ key: String(e.handle), from: e.from, text: textOf(e.message.body) }));
+            return [...hist, ...prev];
+          });
+        }
+      } catch {
+        // no history / ephemeral channel
+      }
+    })().catch((err) => !disposed && setStatus(`error: ${err?.message ?? err}`));
+
+    return () => {
+      disposed = true;
+      unsub?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [lines]);
+
+  async function send() {
+    const space = spaceRef.current;
+    const body = text.trim();
+    if (!space || !body || !ready) return;
+    setText("");
+    try {
+      await space.sendMessage({ contents: body }, { channel: CHANNEL ?? undefined });
+    } catch (err) {
+      setStatus(`send failed: ${err instanceof Error ? err.message : String(err)}`);
+      setText(body);
+    }
+  }
+
+  if (!CHANNEL) return null;
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", height: 500 }} data-cy="channel">
+      <Box sx={{ display: "flex", alignItems: "baseline", gap: 1.5, mb: 0.5 }}>
+        <Typography variant="h4" sx={{ lineHeight: 1 }}>
+          #{CHANNEL}
+        </Typography>
+        <Box
+          data-cy="channel-status"
+          sx={{
+            fontFamily: '"JetBrains Mono", monospace',
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            px: 1,
+            py: 0.25,
+            border: "2px solid #181510",
+            bgcolor: ready ? "primary.main" : "#fbf6ec",
+            color: ready ? "#06140b" : "text.secondary",
+          }}
+        >
+          {status}
+        </Box>
+      </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        End-to-end encrypted — the server only sees ciphertext.
+      </Typography>
+      <Paper sx={{ flex: 1, overflowY: "auto", p: 2, mb: 2 }}>
+        <Stack spacing={1.25}>
+          {lines.map((l) => (
+            <Box
+              key={l.key}
+              data-cy="chat-message"
+              sx={{
+                alignSelf: "flex-start",
+                maxWidth: "85%",
+                bgcolor: "#fffdf7",
+                border: "2px solid #181510",
+                boxShadow: "2px 2px 0 #181510",
+                px: 1.5,
+                py: 0.75,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: '"JetBrains Mono", monospace',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "secondary.main",
+                  mb: 0.25,
+                }}
+              >
+                {l.from}
+              </Typography>
+              <Typography variant="body2" sx={{ fontSize: 15 }}>
+                {l.text}
+              </Typography>
+            </Box>
+          ))}
+          <div ref={bottomRef} />
+        </Stack>
+      </Paper>
+      <Stack
+        direction="row"
+        spacing={1.5}
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void send();
+        }}
+      >
+        <TextField
+          fullWidth
+          disabled={!ready}
+          placeholder={ready ? `Message #${CHANNEL}` : "securing channel…"}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          inputProps={{ "data-cy": "chat-input" }}
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={!ready || !text.trim()}
+          data-cy="chat-send"
+          sx={{ px: 3 }}
+        >
+          Send
+        </Button>
+      </Stack>
+    </Box>
+  );
+}
