@@ -22,7 +22,9 @@ function Home() {
 
   return (
     <Box data-cy="home">
-      <AppBar position="static" color="transparent" elevation={0}>
+      {/* `pt: env(safe-area-inset-top)` keeps the bar clear of the status bar /
+          notch when installed as a PWA (no-op in a normal browser tab). */}
+      <AppBar position="static" color="transparent" elevation={0} sx={{ pt: "env(safe-area-inset-top)" }}>
         <Toolbar sx={{ gap: 1 }}>
           <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 600, minWidth: 0 }}>
             {APP_NAME}

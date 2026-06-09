@@ -217,38 +217,56 @@ async function putTables(token, appId, tables) {
 
 async function createAgents(token, appId, agents) {
   const created = [];
+  if (!(agents || []).length) return created;
+  // Idempotent: match an existing agent by handle and PATCH (update) instead of
+  // re-creating, so re-running provision updates rather than failing.
+  const list = await call(token, "GET", `/api/apps/${appId}/agents`);
+  const existing = list.ok ? list.body?.agents || [] : [];
   for (const a of agents || []) {
     const { enableChannel, ...input } = a;
     info(`→ Agent ${input.handle}…`);
     if (DRY) { created.push({ handle: input.handle, enableChannel }); continue; }
-    const r = await call(token, "POST", `/api/apps/${appId}/agents`, input);
+    const match = existing.find((e) => e.handle === input.handle);
+    const r = match
+      ? await call(token, "PATCH", `/api/apps/${appId}/agents/${match.agentId}`, input)
+      : await call(token, "POST", `/api/apps/${appId}/agents`, input);
     if (r.status === 402) {
       info(`  ⚠ Agents need a paid plan — skipped ${input.handle}. (Config saved for later.)`);
       created.push({ handle: input.handle, enableChannel, skipped: "paid-tier", input });
       continue;
     }
     if (!r.ok) die(`Agent ${input.handle} failed (${r.status}): ${JSON.stringify(r.body)}`);
-    info(`  ✓ ${input.handle} (${r.body.config.agentId})`);
-    created.push({ handle: input.handle, agentId: r.body.config.agentId, enableChannel });
+    const agentId = r.body.config.agentId;
+    info(`  ✓ ${input.handle} (${agentId})${match ? " [updated]" : ""}`);
+    created.push({ handle: input.handle, agentId, enableChannel });
   }
   return created;
 }
 
 async function deployFunctions(token, appId, fns) {
   const deployed = [];
+  if (!(fns || []).length) return deployed;
+  // Idempotent: match an existing function by name and PATCH (redeploy the code)
+  // instead of POST — re-running provision updates rather than 409-ing.
+  const list = await call(token, "GET", `/api/apps/${appId}/functions`);
+  const existing = list.ok ? list.body?.functions || [] : [];
   for (const f of fns || []) {
     const { enableChannel, ...input } = f;
     info(`→ Function ${input.name}…`);
     if (DRY) { deployed.push({ name: input.name, enableChannel }); continue; }
-    const r = await call(token, "POST", `/api/apps/${appId}/functions`, input);
+    const match = existing.find((e) => e.name === input.name);
+    const r = match
+      ? await call(token, "PATCH", `/api/apps/${appId}/functions/${match.functionId}`, input)
+      : await call(token, "POST", `/api/apps/${appId}/functions`, input);
     if (r.status === 402) {
       info(`  ⚠ Functions need a paid plan — skipped ${input.name}. (Config saved for later.)`);
       deployed.push({ name: input.name, enableChannel, skipped: "paid-tier", input });
       continue;
     }
     if (!r.ok) die(`Function ${input.name} failed (${r.status}): ${JSON.stringify(r.body)}`);
-    info(`  ✓ ${input.name} (${r.body.config.functionId})`);
-    deployed.push({ name: input.name, functionId: r.body.config.functionId, enableChannel });
+    const functionId = r.body.config.functionId;
+    info(`  ✓ ${input.name} (${functionId})${match ? " [redeployed]" : ""}`);
+    deployed.push({ name: input.name, functionId, enableChannel });
   }
   return deployed;
 }

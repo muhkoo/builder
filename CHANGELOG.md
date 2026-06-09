@@ -3,6 +3,21 @@
 All notable changes to the **Muhkoo App Builder** plugin. Pre-1.0: new
 backward-compatible features bump the minor, fixes bump the patch.
 
+## 0.2.1
+
+### Fixed
+
+- **`provision.mjs` re-deploys are idempotent.** Deploying an agent or function whose name
+  already exists now PATCHes (updates/redeploys) it instead of failing with a 409 — so
+  re-running provision against an existing app updates rather than erroring.
+
+### Added
+
+- **Scaffolds** — a per-`@muhkoo/connect`-API blueprint library (`scaffolds/api-*.md`) with
+  the applied pattern + gotchas distilled from real apps (web, discord-clone, standup), plus
+  capability scaffolds (`pwa.md` — installable PWA + safe-area handling). The baseline app bar
+  now respects `env(safe-area-inset-top)` so PWAs clear the notch.
+
 ## 0.2.0
 
 ### Added

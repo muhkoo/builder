@@ -119,7 +119,18 @@ scroll, header/forms collapse gracefully). The design changes how it *looks*, ne
 it *works* — then the Cypress suite (next step), including the mobile-viewport spec, is
 the proof it still works **and** is responsive.
 
-### 5 — Agents (paid, optional)
+**Use the scaffolds.** [scaffolds/](scaffolds/README.md) holds two kinds of blueprint —
+read the relevant ones as you build:
+- **API scaffolds** (`api-*.md`) — the *applied* pattern + gotchas for each `@muhkoo/connect`
+  surface, distilled from our real apps (web chat, discord-clone, standup). When you wire a
+  feature against an API, follow its scaffold rather than re-deriving — e.g. the
+  [api-space.md](scaffolds/api-space.md) keyring handshake, the [api-db.md](scaffolds/api-db.md)
+  `owner`-scoping rule, [api-storage.md](scaffolds/api-storage.md) file manifests.
+- **Capability scaffolds** — opt-in add-ons that don't belong in every app; apply the ones
+  this app needs instead of bloating the baseline (e.g. [pwa.md](scaffolds/pwa.md) for an
+  installable app with safe-area handling).
+
+Each scaffold lists its edits + a contract; re-run the suite after applying.
 
 If the design has an agent: edit `src/agent/agentApp.ts` (the `@Muhkoo*`-decorated
 description — see [references/decorators.md](references/decorators.md)), then eject:
@@ -187,6 +198,24 @@ For CI, wire the bundled `.github/workflows/deploy.yml`: set repo secrets
 `MUHKOO_DEPLOY_KEY` (sk), `MUHKOO_APP_ID`, and `VITE_MUHKOO_KEY` (pk) — it builds +
 deploys on every push to `main`. Rollback / status: the `/hosting` API in the
 reference.
+
+### 8 — Harvest a scaffold (optional, but do it when the build taught you something)
+
+A build reworks the user's prompt into a real app — a spec + working feature code. When
+that rework produced something worth not re-deriving (a non-obvious pattern, a new
+capability, a clean data-model shape), **extract it back into the scaffold library** so
+the next build starts ahead. The helper writes the scaffold skeleton in the canonical
+shape **and** captures the build's reworked `app.json` as a genericized, reusable seed:
+
+```bash
+node <skill-dir>/scripts/extract-scaffold.mjs --name <kebab> --kind api|capability \
+  --from <target-dir>     # captures its app.json → scaffolds/seeds/<name>.spec.json
+```
+
+Then fill in `scaffolds/<name>.md` from the *real* code you wrote (pattern + gotchas +
+`See it in`) and add a row to [scaffolds/README.md](scaffolds/README.md). Only extract
+from a **green** app — the suite is the proof the pattern works. Full procedure:
+[references/extracting-scaffolds.md](references/extracting-scaffolds.md).
 
 ## Principles
 

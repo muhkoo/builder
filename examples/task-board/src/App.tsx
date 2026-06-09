@@ -25,7 +25,7 @@ function Home() {
       <AppBar
         position="static"
         elevation={0}
-        sx={{ bgcolor: "primary.main", color: "#06140b", borderBottom: "2px solid #181510" }}
+        sx={{ bgcolor: "primary.main", color: "#06140b", borderBottom: "2px solid #181510", pt: "env(safe-area-inset-top)" }}
       >
         <Toolbar sx={{ gap: { xs: 1, sm: 2 } }}>
           <Box sx={{ flexGrow: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 1.5 }}>
