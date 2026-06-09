@@ -24,13 +24,30 @@ SDK — with ZK auth, the database, and realtime channels already working.
 
 ## Install
 
-This is a Claude Code plugin. Point Claude Code at the directory (or add it to a
-marketplace) and the `build-muhkoo-app` skill becomes available. Then just ask:
+This repo is a Claude Code plugin **and** its own plugin marketplace. In Claude Code:
+
+```
+/plugin marketplace add muhkoo/builder
+/plugin install muhkoo-app-builder@muhkoo
+```
+
+(`muhkoo/builder` is the GitHub repo; `muhkoo` is the marketplace name from
+`.claude-plugin/marketplace.json`.) That's it — the `build-muhkoo-app` skill is now
+available. To update later: `/plugin marketplace update muhkoo`.
+
+**Try it locally first** (from a checkout):
+
+```
+/plugin marketplace add ./app-builder
+/plugin install muhkoo-app-builder@muhkoo
+```
+
+Then just ask:
 
 > Build me a team standup app on Muhkoo.
 
 Claude auto-invokes the skill, asks a couple of clarifying questions, shows you the
-design, provisions it, and scaffolds the client.
+design, provisions it, scaffolds + tests the client, and gives it a distinctive look.
 
 ## Layout
 
