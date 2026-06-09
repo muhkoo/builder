@@ -19,8 +19,9 @@ reference files as you go**, don't work from memory.
 
 ZK auth · a scalable database (`client.db`) · E2E-encrypted realtime channels
 (`client.space`) · per-user KV + file storage · AI agents that can act on the app ·
-serverless functions. The SDK is `@muhkoo/connect`. Full surface:
-[references/platform.md](references/platform.md).
+serverless functions · **hosting** — every app gets a DNS subdomain
+`https://<slug>.apps.muhkoo.dev` and can be deployed there (step 7). The SDK is
+`@muhkoo/connect`. Full surface: [references/platform.md](references/platform.md).
 
 ## Workflow
 
@@ -112,9 +113,11 @@ it with this app's purpose + audience and the files to restyle (`src/auth/AuthSc
 typography, color, motion, atmosphere, composition. You enforce the **preservation
 contract** in [references/design.md](references/design.md): every `data-cy` hook stays,
 the `@muhkoo/connect` calls and hooks are untouched, inputs keep their `autocomplete`
-attrs, and the channel composer stays gated on `ready`. The design changes how it
-*looks*, never how it *works* — then the Cypress suite (next step) is the proof it
-still works.
+attrs, the channel composer stays gated on `ready`, and — **non-negotiable — the result
+is responsive** (usable and intentional from ~360px wide to desktop, no horizontal
+scroll, header/forms collapse gracefully). The design changes how it *looks*, never how
+it *works* — then the Cypress suite (next step), including the mobile-viewport spec, is
+the proof it still works **and** is responsive.
 
 ### 5 — Agents (paid, optional)
 
@@ -158,12 +161,32 @@ for "the app works."
 Also confirm by hand if useful (register → add a record → send a channel message →
 @-mention the agent). Watch the app's **server logs** to debug backend-side failures —
 portal **Tools → Logs**, or the `logs/*` routes in
-[references/platform.md](references/platform.md). To ship: `npm run build` then
-`npx wrangler deploy` (set `account_id` + `name` in `wrangler.jsonc`).
+[references/platform.md](references/platform.md).
 
 > Gotcha: Cypress runs against `npm run dev`, which needs the SDK installed with
 > `--install-links` (step 4). The suite hits the live backend, so the app must be
 > provisioned and `.env.local` filled in first.
+
+### 7 — Host it on Muhkoo (optional)
+
+Every app already has a DNS subdomain — `https://<slug>.apps.muhkoo.dev` (printed by
+`provision.mjs`). Offer to **host the client there** so the user doesn't need their own
+hosting; it's a deploy away (or skip it and run/deploy the SPA however they like). See
+[references/hosting.md](references/hosting.md) for the full contract. The template
+ships `scripts/deploy.mjs` + a GitHub Action.
+
+```bash
+cd <target-dir>
+MUHKOO_DEPLOY_KEY=<app secret key mk_*_sk_*>  MUHKOO_APP_ID=<appId>  npm run deploy
+# builds, uploads only changed files (content-addressed), commits a release, prints the URL
+```
+
+Deploys are authorized by the app's **secret key** (`mk_*_sk_*`) — server-side only,
+never the browser bundle. Hosted bytes count against the account's **storage quota**.
+For CI, wire the bundled `.github/workflows/deploy.yml`: set repo secrets
+`MUHKOO_DEPLOY_KEY` (sk), `MUHKOO_APP_ID`, and `VITE_MUHKOO_KEY` (pk) — it builds +
+deploys on every push to `main`. Rollback / status: the `/hosting` API in the
+reference.
 
 ## Principles
 

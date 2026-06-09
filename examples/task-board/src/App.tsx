@@ -27,11 +27,12 @@ function Home() {
         elevation={0}
         sx={{ bgcolor: "primary.main", color: "#06140b", borderBottom: "2px solid #181510" }}
       >
-        <Toolbar sx={{ gap: 2 }}>
-          <Box sx={{ flexGrow: 1, display: "flex", alignItems: "baseline", gap: 1.5 }}>
+        <Toolbar sx={{ gap: { xs: 1, sm: 2 } }}>
+          <Box sx={{ flexGrow: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 1.5 }}>
             <Typography
               variant="h5"
-              sx={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 800 }}
+              noWrap
+              sx={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 800, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}
             >
               {APP_NAME}
             </Typography>
@@ -61,6 +62,11 @@ function Home() {
               bgcolor: "#06140b",
               color: "primary.main",
               px: 1, py: 0.5,
+              maxWidth: { xs: 84, sm: 220 },
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              minWidth: 0,
             }}
           >
             {username}
@@ -69,7 +75,7 @@ function Home() {
             size="small"
             onClick={() => void logout()}
             data-cy="logout"
-            sx={{ bgcolor: "#fbf6ec", color: "#181510" }}
+            sx={{ bgcolor: "#fbf6ec", color: "#181510", flexShrink: 0 }}
           >
             Log out
           </Button>

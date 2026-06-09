@@ -1,0 +1,38 @@
+name: Deploy to Muhkoo
+
+# Build the app and deploy it to Muhkoo hosting on every push to main.
+# Set these repository secrets (Settings → Secrets and variables → Actions):
+#   MUHKOO_DEPLOY_KEY  — the app SECRET key (mk_live_sk_…). Authorizes the deploy.
+#   MUHKOO_APP_ID      — the app id (from .muhkoo-app.json / the portal).
+#   VITE_MUHKOO_KEY    — the app PUBLISHABLE key (mk_live_pk_…), baked into the bundle.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: muhkoo-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      # Uses the published @muhkoo/connect from npm. (If you depend on a local
+      # `file:` path, switch package.json to the npm version for CI.)
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_MUHKOO_KEY: ${{ secrets.VITE_MUHKOO_KEY }}
+          VITE_WORKER_URL: https://api.muhkoo.dev
+      - run: node scripts/deploy.mjs
+        env:
+          MUHKOO_DEPLOY_KEY: ${{ secrets.MUHKOO_DEPLOY_KEY }}
+          MUHKOO_APP_ID: ${{ secrets.MUHKOO_APP_ID }}
+          MUHKOO_API_BASE: prod

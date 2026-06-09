@@ -160,6 +160,14 @@ await client.functions.deploy(appId, { name, displayName, code, triggers, caps }
 await client.functions.enable(appId, functionId, spaceId);
 ```
 
+## Hosting — every app gets a subdomain
+
+Every app gets a DNS subdomain **`https://<slug>.apps.muhkoo.dev`** (the `<slug>` is the
+app's slug). Deploy the built client there with the bundled `scripts/deploy.mjs`
+(`npm run deploy`) or the GitHub Action — no separate hosting account. Content-addressed
++ instant + rollback-able. Authed by the app **secret key**; hosted bytes count against
+the storage quota. Full contract: [hosting.md](./hosting.md).
+
 ## Server logs — the debug loop
 
 Every app has an E2E-encrypted `__logs__` Space. The owner reads it from the portal

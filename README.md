@@ -16,7 +16,10 @@ SDK — with ZK auth, the database, and realtime channels already working.
 - Realtime **channels** (end-to-end-encrypted group messaging).
 - Optionally, an **AI agent** that can act on your app (query/insert rows, post to
   channels) and **serverless functions** — on paid plans.
-- A running React app you can `npm run dev` immediately and deploy to the edge.
+- A running React app you can `npm run dev` immediately.
+- **Hosting** — every app gets a DNS subdomain `https://<slug>.apps.muhkoo.dev` and can
+  be deployed there with one command (`npm run deploy`) or the bundled GitHub Action. No
+  separate hosting account.
 - A **Cypress end-to-end suite** that drives the real backend (auth + DB + channel),
   so you can verify the built app actually works.
 - A **distinctive UI** — the workflow runs a design pass with the `frontend-design`

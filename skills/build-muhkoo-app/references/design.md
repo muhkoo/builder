@@ -38,6 +38,20 @@ the wiring intact. Then re-run `npm run test:e2e` — green is the gate.
 5. **Accessibility = testability.** Buttons stay `<button>`, the channel status text
    still contains the word `connected` when ready, the composer stays disabled until
    `ready`. Cypress asserts on these.
+6. **Responsive — every app works on a phone.** This is non-negotiable. The design
+   must be usable and look intentional from **~360px wide up to desktop**:
+   - No horizontal scroll at any width. Nothing clipped off-screen.
+   - The app bar / header collapses gracefully (hide or shrink secondary chips; long
+     usernames truncate, never push the layout wide). Use `display: { xs, sm }`,
+     `flexWrap`, `minWidth: 0` + `text-overflow: ellipsis`.
+   - Stacked-on-mobile, side-by-side-on-wider forms/toolbars (`direction={{ xs:
+     "column", sm: "row" }}`). Tap targets ≥ 40px.
+   - Scrollable panels (chat) use viewport-relative or flexible heights, not a fixed
+     px height that overflows a short screen.
+   - The `<meta name="viewport" …>` tag stays in `index.html`.
+   The mobile-viewport Cypress spec (`cypress/e2e/04-responsive.cy.ts`) is the gate —
+   it loads at 375×812 and asserts no horizontal overflow + that the core controls are
+   visible and usable. Keep it green.
 
 ## What the design pass is free to change
 

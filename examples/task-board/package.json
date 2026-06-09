@@ -10,10 +10,12 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "eject:agent": "tsx --tsconfig ./tsconfig.app.json src/agent/eject.ts",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run build && node scripts/deploy.mjs",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
-    "test:e2e": "start-server-and-test dev http://localhost:5173 cy:run"
+    "test:e2e": "start-server-and-test dev http://localhost:5173 cy:run",
+    "deploy:hosting": "npm run build && node scripts/deploy.mjs",
+    "deploy:cf": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@emotion/react": "^11",

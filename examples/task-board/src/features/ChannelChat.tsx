@@ -119,7 +119,7 @@ export function ChannelChat() {
   if (!CHANNEL) return null;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: 500 }} data-cy="channel">
+    <Box sx={{ display: "flex", flexDirection: "column", height: { xs: "62dvh", sm: 500 } }} data-cy="channel">
       <Box sx={{ display: "flex", alignItems: "baseline", gap: 1.5, mb: 0.5 }}>
         <Typography variant="h4" sx={{ lineHeight: 1 }}>
           #{CHANNEL}

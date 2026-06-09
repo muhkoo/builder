@@ -119,7 +119,10 @@ export function ChannelChat() {
   if (!CHANNEL) return null;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: 480 }} data-cy="channel">
+    <Box
+      sx={{ display: "flex", flexDirection: "column", height: { xs: "62dvh", sm: 480 } }}
+      data-cy="channel"
+    >
       <Typography variant="h6" sx={{ mb: 0.5 }}>
         #{CHANNEL}
       </Typography>

@@ -23,14 +23,20 @@ function Home() {
   return (
     <Box data-cy="home">
       <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+        <Toolbar sx={{ gap: 1 }}>
+          <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 600, minWidth: 0 }}>
             {APP_NAME}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }} data-cy="current-user">
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            noWrap
+            data-cy="current-user"
+            sx={{ maxWidth: { xs: 90, sm: 200 }, overflow: "hidden", textOverflow: "ellipsis" }}
+          >
             {username}
           </Typography>
-          <Button size="small" onClick={() => void logout()} data-cy="logout">
+          <Button size="small" onClick={() => void logout()} data-cy="logout" sx={{ flexShrink: 0 }}>
             Log out
           </Button>
         </Toolbar>

@@ -298,10 +298,15 @@ async function main() {
   const agents = await createAgents(token, app.appId, spec.agents);
   const functions = await deployFunctions(token, app.appId, spec.functions);
 
+  // Every app gets a hosting subdomain (served once you deploy its built client).
+  const appsSuffix = baseUrl.includes("staging") ? "apps.staging.muhkoo.dev" : "apps.muhkoo.dev";
+  const hostingUrl = `https://${app.slug}.${appsSuffix}`;
+
   const record = {
     appId: app.appId,
     slug: app.slug,
     baseUrl,
+    hostingUrl,
     keys: app.keys?.length ? app.keys : prior?.keys || [],
     tables,
     agents,
@@ -315,6 +320,7 @@ async function main() {
   info(`  slug:    ${record.slug}`);
   if (pk) info(`  test pk: ${pk}`);
   info(`  tables:  ${tables.join(", ") || "(none)"}`);
+  info(`  hosting: ${hostingUrl}  (deploy your built client with \`npm run deploy\` to go live)`);
   if ((agents || []).some((a) => a.enableChannel) || (functions || []).some((f) => f.enableChannel)) {
     info("\nNext: run the app once so its channels exist, then enable agents/functions:");
     info(`  node ${process.argv[1].split("/").pop()} --spec ${args.spec} --base ${args.base || "prod"} --token <t> --enable`);
