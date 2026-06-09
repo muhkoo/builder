@@ -39,7 +39,7 @@ app must be provisioned and `.env.local` filled in first — the suite hits the 
 - **`src/appConfig.ts`** — the table name + fields and the channel the UI is built
   from. Change these to match your provisioned backend.
 - **`.env.local`** — `VITE_MUHKOO_KEY` (publishable app key) and `VITE_WORKER_URL`
-  (API base: `https://api.staging.muhkoo.dev` or `https://api.muhkoo.dev`).
+  (API base: `https://api.muhkoo.dev` or `https://api.staging.muhkoo.dev`).
 
 ## Structure
 

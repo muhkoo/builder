@@ -4,7 +4,7 @@ The canonical example the **build-muhkoo-app** skill produces: a shared, team-wi
 task list with a realtime channel and an AI helper. Built end-to-end on Muhkoo with
 ZK auth, the scalable database, an E2E-encrypted channel, and a programmable agent.
 
-This is the actual output of running the skill against staging — provisioned with
+This is the actual output of running the skill against production — provisioned with
 `app.json`, scaffolded from `../../skills/build-muhkoo-app/templates/starter-app`.
 
 ## The design
@@ -24,7 +24,7 @@ This is the actual output of running the skill against staging — provisioned w
 ```bash
 # from this directory, with your Muhkoo dev credentials
 MUHKOO_USERNAME=… MUHKOO_PASSWORD=… \
-  node ../../skills/build-muhkoo-app/scripts/provision.mjs --spec app.json --base staging
+  node ../../skills/build-muhkoo-app/scripts/provision.mjs --spec app.json --base prod
 ```
 
 This creates the app + `tasks` table + `@helper` agent and writes `.muhkoo-app.json`
@@ -32,7 +32,7 @@ This creates the app + `tasks` table + `@helper` agent and writes `.muhkoo-app.j
 run once (so `general` exists), enable the agent on it:
 
 ```bash
-node ../../skills/build-muhkoo-app/scripts/provision.mjs --spec app.json --base staging --enable
+node ../../skills/build-muhkoo-app/scripts/provision.mjs --spec app.json --base prod --enable
 ```
 
 ## Run the client
@@ -54,7 +54,7 @@ npm run test:e2e     # boots the dev server + runs the Cypress suite headless
 
 The suite (`cypress/e2e/`) exercises the live backend end-to-end: ZK auth, the `tasks`
 database CRUD, and the encrypted **#general** channel round-trip. All four specs pass
-against staging.
+against production.
 
 ## Notes
 

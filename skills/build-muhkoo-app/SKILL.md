@@ -65,7 +65,7 @@ Run the provisioner (it's idempotent; writes `.muhkoo-app.json` with the app id 
 keys):
 
 ```bash
-node <skill-dir>/scripts/provision.mjs --spec app.json --base staging \
+node <skill-dir>/scripts/provision.mjs --spec app.json --base prod \
   --username "$MUHKOO_USERNAME" --password "$MUHKOO_PASSWORD"
 # or: --token <sessionToken>     (paste from the portal)
 # add --dry-run first to preview the calls
@@ -93,7 +93,7 @@ Then:
 2. **Edit `src/appConfig.ts`** to match the design: `TABLE.name` + `fields[]` (one
    per column the UI edits) and `CHANNEL` (or `null` to drop the chat tab).
 3. **Write `.env.local`** from `.env.example`: `VITE_MUHKOO_KEY=<the test pk>` and
-   `VITE_WORKER_URL=https://api.staging.muhkoo.dev` (or prod).
+   `VITE_WORKER_URL=https://api.muhkoo.dev` (or staging).
 4. **Install.** With a `file:` connect dep, use `npm install --install-links` — this
    *copies* the SDK (and installs its deps fresh) instead of symlinking it. A plain
    `npm install` symlinks, which leaks the SDK's dev `node_modules` into the bundle
@@ -130,7 +130,7 @@ function-calling `model` and `enableChannel: "<channel>"`), re-run `provision.mj
 then — **after the app has run once so the channel exists** — enable it:
 
 ```bash
-node <skill-dir>/scripts/provision.mjs --spec app.json --base staging --token <t> --enable
+node <skill-dir>/scripts/provision.mjs --spec app.json --base prod --token <t> --enable
 ```
 
 ### 6 — Run, verify, debug

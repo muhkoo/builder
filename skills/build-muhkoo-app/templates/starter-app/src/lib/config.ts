@@ -2,8 +2,8 @@
 export function baseUrl(): string {
   const fromEnv = import.meta.env.VITE_WORKER_URL;
   if (fromEnv) return fromEnv.replace(/\/+$/, "");
-  // Sensible default for local dev against staging.
-  return "https://api.staging.muhkoo.dev";
+  // Sensible default: the production API.
+  return "https://api.muhkoo.dev";
 }
 
 /** The publishable app key (mk_test_pk_… / mk_live_pk_…). */
