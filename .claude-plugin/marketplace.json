@@ -9,7 +9,7 @@
     {
       "name": "muhkoo-app-builder",
       "source": "./",
-      "description": "Describe an app idea and build it end-to-end on Muhkoo: provision the backend (ZK auth, database, channels, agents, functions), scaffold a Vite + React client against @muhkoo/connect, run an end-to-end Cypress suite, and apply a frontend-design pass."
+      "description": "Describe an app idea and build it end-to-end on Muhkoo: provision the backend (ZK auth, database, channels, agents, functions), scaffold a Vite + React client against @muhkoo/connect, verify it with a live Cypress suite, apply a responsive frontend-design pass, and host it at <slug>.apps.muhkoo.dev."
     }
   ]
 }
