@@ -3,6 +3,53 @@
 All notable changes to the **Muhkoo App Builder** plugin. Pre-1.0: new
 backward-compatible features bump the minor, fixes bump the patch.
 
+## 0.2.4
+
+### Added
+
+- **Account recovery (Auth & Identity M1).** Targets `@muhkoo/connect` 0.6.0-alpha.11, where
+  the password becomes a recovery **factor** rather than the source of keys: a random master
+  seed (same `commitment`, backward-compatible) is wrapped per factor in a server-blind vault,
+  making accounts un-lose-able. Documented across the skill:
+  - **`references/platform.md`** — the `client.auth.zk` surface now lists `enrollPasskey`,
+    `loginWithPasskey`, `passkeyAvailable`, `passkeyPrfAvailable`, `enrollRecoveryPhrase`,
+    `recoverWithPhrase`, `changePassword`, `listFactors`, `removeFactor`, the `seedBase64`
+    getter, and the exported `VaultUnavailableError`, plus a note to wrap per-user encrypted
+    app-data under the seed (not the password). Bumped the documented SDK version to
+    0.6.0-alpha.11.
+  - **`scaffolds/api-auth.md`** — new *Account recovery & passkeys* section (passkey enroll +
+    PRF-gated passwordless login, recovery phrase, change password, list/remove factors) in the
+    applied-pattern + gotchas style; a *wrap app data to the seed, not the password* gotcha with
+    the `seedBase64` pattern and the one-time password→seed re-wrap migration (REQUIRED when an
+    app encrypts per-user data); and a note that `VaultUnavailableError` means "retry", not
+    "wrong password".
+  - **`references/design-guide.md`** — every app should ship a **Security** screen (passkey +
+    recovery phrase + change password) and a **Forgot password** screen.
+  - **Starter template** — `AuthContext` exposes the full recovery surface; `AuthScreen` adds a
+    PRF-gated "Sign in with a passkey" button and a forgot-password (recover-with-phrase) flow;
+    new `SecurityDialog` (enroll passkey, generate one-time recovery phrase, change password,
+    view/remove factors) reachable from a Security button in the app bar.
+
+## 0.2.3
+
+### Added
+
+- **Custom domains.** `references/hosting.md` + SKILL step 7 now cover serving an app on
+  the developer's **own domain** (Cloudflare for SaaS): add it in the portal's *Custom
+  domains* card, drop two CNAMEs at any DNS provider, and — once Cloudflare **verifies
+  ownership** — it auto-issues + auto-renews the cert and starts serving (an unverified
+  domain is never served). Paid-plan feature; includes the grey-cloud gotcha for domains
+  already on the user's own Cloudflare account.
+- **Hosting release history.** Documented the last-10 release retention + delete, and the
+  `DELETE /hosting/releases/:releaseId` endpoint.
+
+## 0.2.2
+
+### Added
+
+- **Scaffold ejection** (`references/extracting-scaffolds.md`) — harvest a reusable
+  scaffold from a finished build so the next app starts ahead.
+
 ## 0.2.1
 
 ### Fixed

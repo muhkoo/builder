@@ -61,6 +61,73 @@ Gate the app: `!ready` → spinner; `needsUnlock` → an unlock screen (`unlock(
 4. **Wrong password → commitment mismatch.** A wrong password derives a different identity →
    the server rejects it. Surface a friendly "wrong password", don't auto-retry.
 5. **`onSessionExpired`** fires when the SDK can't silently re-auth — wire it to logout/re-auth.
+6. **`VaultUnavailableError` ≠ wrong password.** `login()` / `unlock()` throw the exported
+   `VaultUnavailableError` when the recovery vault is unreachable (network / 5xx / rate-limit).
+   Catch it separately and surface "couldn't reach the server, retry" — **don't** tell the user
+   their password is wrong (a real wrong password is a commitment mismatch, gotcha #4).
+
+## Account recovery & passkeys
+
+The password is a **factor**, not the source of keys: a random master seed (same `commitment`,
+backward-compatible) is wrapped per factor in a server-blind vault. This makes accounts
+**un-lose-able** — offer it. Build a small **Security** surface (signed-in) plus a
+**Forgot password** flow on the auth screen.
+
+```ts
+const zk = getClient().auth.zk;
+
+// — Passwordless sign-in with a passkey (on the auth screen) —
+//   Only show the button when WebAuthn + PRF are actually usable here.
+const canPasskey = zk.passkeyAvailable() && (await zk.passkeyPrfAvailable()) !== false;
+if (canPasskey) {
+  const user = await zk.loginWithPasskey(username); // → AuthUser, identity unlocked
+}
+
+// — Security surface (signed-in) —
+await zk.enrollPasskey({ label: "MacBook" });        // wrap the seed under a new passkey
+const phrase = await zk.enrollRecoveryPhrase();      // 24-word BIP39, show ONCE then forget it
+await zk.changePassword(newPassword);                // rotate password; commitment never moves
+const factors = await zk.listFactors();              // [{ id, type, label?, createdAt? }]
+await zk.removeFactor(factors[0].id);                // can't remove the last one
+
+// — Forgot password (on the auth screen) —
+const user = await zk.recoverWithPhrase(username, mnemonic); // → AuthUser
+await zk.changePassword(newPassword);                // then set a fresh password
+```
+
+### Recovery gotchas
+
+1. **`passkeyPrfAvailable()` can be `null`** (undeterminable). Treat `null` like `false` and
+   **hide** the passkey option — don't offer a passkey path you can't guarantee works.
+2. **The recovery phrase is shown exactly once.** It *is* the seed; nothing is stored
+   server-side. Render it in a copy-once dialog and make the user confirm they saved it.
+3. **`recoverWithPhrase` doesn't set a password.** It's the forgot-password path — follow it
+   with `changePassword(new)` so the user can sign in normally next time.
+4. **You can't remove the last factor.** `removeFactor` rejects it — keep at least one.
+
+### Wrap app data to the seed, not the password (REQUIRED if you encrypt per-user data)
+
+If the app encrypts per-user data itself — chat ratchet keys, KV secrets, anything keyed off
+the password — **re-key it to `client.auth.zk.seedBase64`** (the master seed as base64; `null`
+when locked). The seed is stable across password changes **and** is present under passwordless
+passkey login, so password-wrapped data would otherwise be unrecoverable after a rotation or a
+passkey sign-in.
+
+```ts
+const seed = getClient().auth.zk.seedBase64; // null when locked — gate on it
+// derive your data-encryption key from `seed`, not from the password
+
+// One-time migration, on the next password login (you have both secrets in hand):
+async function unwrapAppKey(blob, seedSecret, password) {
+  try {
+    return await unwrap(blob, seedSecret);          // already seed-wrapped → done
+  } catch {
+    const key = await unwrap(blob, password);        // legacy: password-wrapped
+    await store(await wrap(key, seedSecret));        // re-wrap under the seed, persist
+    return key;
+  }
+}
+```
 
 ## See it in
 `web/src/auth/AuthContext.tsx` (mature: identity persistence + onSessionExpired),

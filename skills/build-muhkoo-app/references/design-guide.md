@@ -6,7 +6,8 @@ Produce a short, explicit spec and **show it to the user** before creating anyth
 ## The five questions to resolve (ask only what the idea leaves unclear)
 
 1. **Who logs in?** Almost always yes → ZK auth. (One personal-use app with no sharing
-   could skip multi-user concerns, but auth is still the front door.)
+   could skip multi-user concerns, but auth is still the front door.) **Always offer account
+   recovery** — accounts are un-lose-able when you do.
 2. **What persistent records exist?** → `client.db` tables. Name the entities and their
    fields.
 3. **Is there realtime / shared conversation or a live feed?** → a `client.space`
@@ -27,6 +28,20 @@ Produce a short, explicit spec and **show it to the user** before creating anyth
 | "upload", "attach", "image", "document" | `storage` |
 | "assistant", "bot", "ask it to…", "@mention" | an **agent** with tools |
 | "webhook", "on a schedule", "when X happens, do Y server-side" | a **function** |
+
+## Designing account recovery (every app)
+
+The password is a recovery **factor**, not the only key — so every app should let users get
+back in. Two surfaces, both cheap:
+
+- A **Security screen** (signed-in): add a passkey (passwordless sign-in), generate a one-time
+  recovery phrase, and change password. Gate the passkey option on `passkeyPrfAvailable()`.
+- A **Forgot password screen** (on the auth screen): recover with the 24-word phrase, then set
+  a new password.
+
+If the app encrypts per-user data itself (chat keys, KV secrets), key it off the master **seed**
+(`client.auth.zk.seedBase64`), not the password, so it survives rotation + passkey login. See
+[api-auth.md](../scaffolds/api-auth.md).
 
 ## Designing a table
 

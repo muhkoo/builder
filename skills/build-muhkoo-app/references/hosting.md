@@ -50,12 +50,33 @@ All under `/api/apps/:appId/hosting`, `Authorization: Bearer <app sk | dev sessi
 | POST | `/hosting/releases` | `{ manifest: { "<path>": "<sha>", … } }` | Commit a release (validates blobs exist, enforces storage quota, flips live). Returns `{ releaseId, url, bytes, files }`. |
 | GET | `/hosting` | — | Site status: url, current release, bytes, release history. |
 | POST | `/hosting/rollback` | `{ releaseId }` | Re-point the site to a prior release. |
+| DELETE | `/hosting/releases/:releaseId` | — | Delete a non-current release from history. |
 | DELETE | `/hosting` | — | Unpublish the site. |
 
 The manifest maps each file's path (relative to `dist/`, forward slashes,
 `index.html` at root) to its blob sha. `index.html` is required; unknown deep-link
 paths fall back to it (SPA routing). Asset files are cached immutably; `index.html`
-revalidates, so a deploy is live immediately.
+revalidates, so a deploy is live immediately. The platform keeps the **last 10
+releases** (the live one is always kept); older ones auto-prune on deploy.
+
+## Custom domains
+
+An app can also be served on the developer's **own domain** (`app.theircompany.com`)
+via Cloudflare for SaaS — they keep their domain at any DNS provider, and Cloudflare
+issues + auto-renews the TLS cert. This is a **portal action**, not something
+`provision.mjs` automates: portal → the app → **Custom domains** → add the hostname,
+then add the two CNAMEs it shows at their DNS provider (a traffic CNAME to
+`cname.muhkoo.io` + a one-time `_acme-challenge` CNAME). It's a paid-plan feature.
+
+The same is available over the API under `/api/apps/:appId/hosting/domains`
+(`POST {hostname}` / `GET` / `DELETE /:hostname`, app sk or dev session). Attaching a
+domain registers it and returns the DNS records to add; the domain is **verified**
+(Cloudflare confirms ownership via the records) before serving is enabled — an
+unverified domain is never served (`verified: true` in the `GET` response, surfaced as
+"Active" in the portal). When you mention hosting to the user, note that a custom
+domain is an option once they're on a paid plan. (Gotcha: a domain already on the
+user's own Cloudflare account must be set **DNS-only / grey-cloud**, or that zone
+intercepts it first.)
 
 ## Notes
 

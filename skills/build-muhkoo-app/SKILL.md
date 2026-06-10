@@ -196,8 +196,13 @@ Deploys are authorized by the app's **secret key** (`mk_*_sk_*`) — server-side
 never the browser bundle. Hosted bytes count against the account's **storage quota**.
 For CI, wire the bundled `.github/workflows/deploy.yml`: set repo secrets
 `MUHKOO_DEPLOY_KEY` (sk), `MUHKOO_APP_ID`, and `VITE_MUHKOO_KEY` (pk) — it builds +
-deploys on every push to `main`. Rollback / status: the `/hosting` API in the
-reference.
+deploys on every push to `main`. Rollback / release history (last 10, deletable) /
+status: the `/hosting` API in the reference.
+
+On a **paid plan**, the user can also serve the app on **their own domain** — that's a
+portal action (the app's **Custom domains** card: add the hostname, then add the two
+CNAMEs it shows at their DNS provider; Cloudflare auto-issues + renews the cert). Worth
+mentioning when you offer hosting; details in [references/hosting.md](references/hosting.md).
 
 ### 8 — Harvest a scaffold (optional, but do it when the build taught you something)
 

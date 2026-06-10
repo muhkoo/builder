@@ -4,7 +4,7 @@ Everything the skill needs to know about the platform surface. This is the
 authoritative cheat-sheet — prefer it over guessing or re-deriving from source.
 The live docs are at <https://docs.muhkoo.dev>.
 
-SDK: **`@muhkoo/connect`** (current `0.6.0-alpha.0`). The client owns eight
+SDK: **`@muhkoo/connect`** (current `0.6.0-alpha.11`). The client owns eight
 namespaces. A runtime client app talks to the platform **only** through this SDK
 with an **app key** (`mk_*`). Provisioning (creating the app, tables, agents,
 functions) is a separate developer-authenticated surface — see
@@ -58,10 +58,35 @@ await client.auth.zk.logout();
 client.auth.zk.user;      // AuthUser | null  { username, commitment }
 client.auth.zk.token;     // current session token (string | null)
 client.auth.zk.identity;  // in-memory identity (null when locked)
+client.auth.zk.seedBase64; // master seed as base64 (string | null; null when locked)
+
+// Account recovery & passkeys — the password is now a *factor*, not the source of keys.
+// A random master seed (same commitment, backward-compatible) is wrapped per factor in
+// a server-blind vault. All of the below are additive; signed-in unless noted.
+await client.auth.zk.enrollPasskey({ rpId?, rpName?, label? }); // add a WebAuthn (PRF) passkey
+await client.auth.zk.loginWithPasskey(username);   // → AuthUser  passwordless sign-in
+client.auth.zk.passkeyAvailable();                 // boolean — WebAuthn usable here
+await client.auth.zk.passkeyPrfAvailable();        // boolean | null (null = undeterminable → hide passkey)
+await client.auth.zk.enrollRecoveryPhrase();       // → string  24-word BIP39, shown ONCE (it IS the seed)
+await client.auth.zk.recoverWithPhrase(username, mnemonic); // → AuthUser  forgot-password path
+await client.auth.zk.changePassword(newPassword);  // re-wraps the unchanged seed (commitment never moves)
+await client.auth.zk.listFactors();   // → [{ id, type: "password"|"passkey"|"phrase-marker", label?, createdAt? }]
+await client.auth.zk.removeFactor(id); // can't remove the last factor
+
+// VaultUnavailableError (exported) — login/unlock throw this when the vault is unreachable
+// (network / 5xx / rate-limit). Distinct from a wrong password → "retry", not "wrong password".
+import { VaultUnavailableError } from "@muhkoo/connect";
 ```
 
 `commitment` is the user's stable id (a Poseidon hash). Encryption/messaging requires
 an **unlocked** identity — `login()` unlocks; after `restore()` you call `unlock(password)`.
+
+**Recovery makes accounts un-lose-able.** Passkeys give passwordless sign-in; a recovery
+phrase is a forgot-password path; `changePassword` rotates the password without moving the
+identity. Legacy accounts migrate to the vault transparently on first vault-aware login/unlock.
+**Wrap any per-user encrypted app-data under `seedBase64`, not the password** — the seed is
+stable across password changes and is available under passwordless passkey login, so chat
+ratchet keys / KV secrets survive both (see [api-auth.md](../scaffolds/api-auth.md)).
 
 ### `client.kv` — per-user key/value (encrypted at rest)
 

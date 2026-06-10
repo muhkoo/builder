@@ -1,8 +1,8 @@
 {
   "name": "muhkoo-app-builder",
   "displayName": "Muhkoo App Builder",
-  "version": "0.2.2",
-  "description": "Describe an app idea in plain language and build it end-to-end on Muhkoo: provision the backend (app key, database tables, channels, agents, serverless functions), scaffold a Vite + React client against @muhkoo/connect, verify it with a live Cypress suite, give it a responsive distinctive design, and host it at <slug>.apps.muhkoo.dev.",
+  "version": "0.2.4",
+  "description": "Describe an app idea in plain language and build it end-to-end on Muhkoo: provision the backend (app key, database tables, channels, agents, serverless functions), scaffold a Vite + React client against @muhkoo/connect, verify it with a live Cypress suite, give it a responsive distinctive design, and host it at <slug>.apps.muhkoo.dev (or your own custom domain).",
   "author": {
     "name": "Muhkoo",
     "email": "hello@muhkoo.com"
