@@ -1,0 +1,36 @@
+name: Deploy to Muhkoo
+
+# Build the static site and deploy it to Muhkoo hosting on every push to main.
+# Set these repository secrets (Settings → Secrets and variables → Actions):
+#   MUHKOO_DEPLOY_KEY  — the app SECRET key (mk_live_sk_…). Authorizes the deploy.
+#   MUHKOO_APP_ID      — the app id (from .muhkoo-app.json / the portal).
+# Optional (only if the site uses the email-list function):
+#   VITE_SUBSCRIBE_URL — the subscribe function URL (subscribe--<slug>.fns.muhkoo.dev).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: muhkoo-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_SUBSCRIBE_URL: ${{ secrets.VITE_SUBSCRIBE_URL }}
+      - run: node scripts/deploy.mjs
+        env:
+          MUHKOO_DEPLOY_KEY: ${{ secrets.MUHKOO_DEPLOY_KEY }}
+          MUHKOO_APP_ID: ${{ secrets.MUHKOO_APP_ID }}
+          MUHKOO_API_BASE: prod

@@ -62,4 +62,4 @@ npm run build
 npx wrangler deploy
 ```
 
-The build is static assets served from a Cloudflare Worker (SPA fallback enabled).
+The build is static assets served as static assets with SPA-fallback routing.

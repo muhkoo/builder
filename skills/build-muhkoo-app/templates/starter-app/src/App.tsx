@@ -12,15 +12,13 @@ import {
 } from "@mui/material";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { AuthScreen } from "./auth/AuthScreen";
-import { SecurityDialog } from "./auth/SecurityDialog";
 import { RecordsBoard } from "./features/RecordsBoard";
 import { ChannelChat } from "./features/ChannelChat";
 import { APP_NAME, CHANNEL } from "./appConfig";
 
 function Home() {
-  const { username, logout } = useAuth();
+  const { username, logout, manageAccount } = useAuth();
   const [tab, setTab] = useState(0);
-  const [securityOpen, setSecurityOpen] = useState(false);
 
   return (
     <Box data-cy="home">
@@ -40,16 +38,14 @@ function Home() {
           >
             {username}
           </Typography>
-          <Button size="small" onClick={() => setSecurityOpen(true)} data-cy="open-security" sx={{ flexShrink: 0 }}>
-            Security
+          <Button size="small" onClick={() => void manageAccount()} data-cy="manage-account" sx={{ flexShrink: 0 }}>
+            Account
           </Button>
           <Button size="small" onClick={() => void logout()} data-cy="logout" sx={{ flexShrink: 0 }}>
             Log out
           </Button>
         </Toolbar>
       </AppBar>
-
-      <SecurityDialog open={securityOpen} onClose={() => setSecurityOpen(false)} />
 
       <Container maxWidth="md" sx={{ py: 3 }}>
         {CHANNEL ? (

@@ -1,23 +1,30 @@
 /**
- * Auth — ZK register + session persistence against the live backend.
+ * Auth — the app uses centralized hosted auth (auth.muhkoo.dev), so sign-in is a
+ * cross-origin redirect. Cypress can't drive a third-party origin in the same
+ * spec, so we verify the app-side entry: the "Continue with Muhkoo" button is
+ * present and starts the redirect. Full sign-in/register/recovery is exercised
+ * on the hosted page itself.
+ *
+ * Specs that need an authenticated app can inject a session programmatically
+ * (set the persisted session token in localStorage in `onBeforeLoad`) rather
+ * than walking the hosted UI.
  */
-const SLOW = 90_000;
-
 describe("auth", () => {
-  it("registers a new user and lands on the home screen", () => {
-    cy.signUp().then((user) => {
-      cy.get('[data-cy="current-user"]').should("contain", user);
-      // A session token is persisted (covers the restore-on-reload path).
-      cy.window().then((win) => {
-        const keys = Object.keys(win.localStorage);
-        expect(keys.some((k) => /session|token|muhkoo/i.test(k)), "a session key in localStorage").to.eq(true);
-      });
-    });
+  it("shows the hosted sign-in entry", () => {
+    cy.visit("/");
+    cy.get('[data-cy="auth-screen"]').should("be.visible");
+    cy.get('[data-cy="auth-submit"]').should("contain", "Continue with Muhkoo");
   });
 
-  it("keeps the user signed in across a reload", () => {
-    cy.signUp();
-    cy.reload();
-    cy.get('[data-cy="home"]', { timeout: SLOW }).should("be.visible");
+  it("clicking Continue starts the redirect to the hosted auth page", () => {
+    cy.visit("/", {
+      onBeforeLoad(win) {
+        // Stub the navigation so the assertion doesn't actually leave the app.
+        cy.stub(win.location, "assign").as("assign");
+      },
+    });
+    cy.get('[data-cy="auth-submit"]').click();
+    // The SDK redirects to the hosted auth origin with an /authorize URL.
+    cy.get("@assign").should("have.been.calledWithMatch", /\/authorize\?/);
   });
 });

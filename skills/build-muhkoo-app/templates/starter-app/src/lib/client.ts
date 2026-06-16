@@ -7,7 +7,7 @@
  * so sign-in survives reloads.
  */
 import { Client } from "@muhkoo/connect";
-import { appKey, baseUrl } from "./config";
+import { appKey, baseUrl, authBaseUrl } from "./config";
 
 let _client: Client | null = null;
 
@@ -16,6 +16,9 @@ export function getClient(): Client {
   _client = new Client({
     baseUrl: baseUrl(),
     apiKey: appKey(),
+    // Only set when overriding for staging/dev; else the SDK default
+    // (auth.muhkoo.dev) applies — same pattern as baseUrl.
+    authBaseUrl: authBaseUrl() || undefined,
   });
   return _client;
 }

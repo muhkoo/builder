@@ -3,6 +3,44 @@
 All notable changes to the **Muhkoo App Builder** plugin. Pre-1.0: new
 backward-compatible features bump the minor, fixes bump the patch.
 
+## 0.2.6
+
+### Added
+
+- **Scaffold wires "Account & security" into the app header** — generated apps
+  get an **Account** button that opens centralized account management on
+  `auth.muhkoo.dev/security` via `client.auth.hosted.manageAccount({ returnUri })`.
+  One place to manage passkeys, recovery email, Google, recovery phrase, and the
+  password — across every Muhkoo app, with no per-app security UI to maintain.
+  `AuthContext` exposes `manageAccount()`.
+
+### Changed
+
+- Template `@muhkoo/connect` pinned to `^0.7.0-alpha.4` (hosted auth +
+  `manageAccount`). New apps need that published SDK version.
+
+## 0.2.5
+
+### Changed
+
+- **Scaffold now uses centralized hosted auth (`client.auth.hosted`).** Generated
+  apps no longer embed a login/register/recovery UI or the proving circuits —
+  the `AuthScreen` is a single **"Continue with Muhkoo"** button that redirects to
+  the hosted sign-in page (auth.muhkoo.dev) and returns with a session via
+  `handleCallback()`. This drops ~6 MiB (snarkjs) from the app bundle and means
+  every factor (password, passkey, email, Google) and account recovery are
+  managed in one place — so "Sign in with Google" works with no per-app OAuth
+  origin setup. The `AuthContext`, `AuthScreen`, `lib/client`, and `lib/config`
+  templates were rewritten; `SecurityDialog` was removed (factor management now
+  lives on the hosted page).
+- **Register your callback URL** in the developer portal (App Detail → Hosted
+  sign-in) before deploying — the scaffold writes `VITE_MUHKOO_APP_ID`; the
+  callback URL is the app's own origin.
+- Docs/scaffolds updated: new `scaffolds/api-auth-hosted.md`, `references/platform.md`
+  `client.auth.hosted` methods, and `SKILL.md` step notes. Product copy across the
+  scaffold + docs no longer names the underlying infrastructure (it's "Muhkoo
+  hosting" / "the platform").
+
 ## 0.2.4
 
 ### Added

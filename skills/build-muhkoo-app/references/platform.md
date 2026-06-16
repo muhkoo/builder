@@ -46,7 +46,20 @@ so sessions persist across reloads.
 
 ## The eight namespaces
 
-### `client.auth` — ZK authentication (passwordless on the server)
+### `client.auth` — authentication (passwordless on the server)
+
+**Hosted auth (`client.auth.hosted`) is the default for new scaffolds** — the app
+redirects to `auth.muhkoo.dev` instead of embedding login UI + proving circuits.
+See [api-auth-hosted.md](../scaffolds/api-auth-hosted.md).
+
+```ts
+await client.auth.hosted.login({ appId, redirectUri }); // redirect to auth.muhkoo.dev
+await client.auth.hosted.handleCallback();               // on the callback → { username, commitment }
+client.auth.hosted.isCallback();                         // guard the callback route
+```
+
+The embedded zero-knowledge surface below stays available when you want the
+login UX fully in-app:
 
 ```ts
 await client.auth.zk.register({ username, password, email?, login? }); // login defaults true
@@ -178,7 +191,7 @@ tools — see [decorators.md](./decorators.md).
 
 ### `client.functions` — serverless functions (management; **paid plan**)
 
-Developer-authored per-app Workers, triggered by HTTP or by messages in a Space:
+Developer-authored per-app functions, triggered by HTTP or by messages in a Space:
 
 ```ts
 await client.functions.deploy(appId, { name, displayName, code, triggers, caps });

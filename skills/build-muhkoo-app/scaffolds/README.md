@@ -39,6 +39,14 @@ apps (`web` chat, `discord-clone`, `standup`, the `task-board` example). These c
 | --- | --- |
 | [pwa.md](./pwa.md) | The app should be **installable** / run standalone on a phone (PWA): web manifest, service worker, install meta, and **safe-area** handling so content clears the notch / home indicator. |
 
+## Template scaffolds
+
+A whole **template choice** rather than an add-on (pick it at SKILL "Choosing a template").
+
+| Scaffold | Use when |
+| --- | --- |
+| [static-site.md](./static-site.md) | The idea has **no logged-in users** — landing page, marketing site, docs, portfolio. The `templates/static-site` template: plain HTML/CSS/JS (no auth/SDK/ZK), hosted at `<slug>.apps.muhkoo.dev`, with an optional email-list function. |
+
 ## Adding a scaffold
 
 Don't hand-author from scratch — **extract one from a finished build**. After a build

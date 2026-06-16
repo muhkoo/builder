@@ -20,7 +20,7 @@
   "dependencies": {
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
-    "@muhkoo/connect": "file:../connect",
+    "@muhkoo/connect": "^0.7.0-alpha.4",
     "@mui/icons-material": "^6",
     "@mui/material": "^6",
     "@noble/curves": "^2.2.0",

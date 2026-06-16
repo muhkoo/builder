@@ -346,4 +346,8 @@ async function main() {
   if (!pk) info("\n(No new keys issued — reusing the existing app. Keys live in " + OUT + " from the first run.)");
 }
 
-main().catch((e) => die(e?.stack || e?.message || String(e)));
+main()
+  // Explicit exit: a programmatic ZK login leaves snarkjs worker threads
+  // alive, so the process otherwise never terminates (looks like a hang).
+  .then(() => process.exit(0))
+  .catch((e) => die(e?.stack || e?.message || String(e)));

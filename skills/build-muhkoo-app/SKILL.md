@@ -1,6 +1,6 @@
 ---
 name: build-muhkoo-app
-description: Build a complete application on the Muhkoo platform from a plain-language idea — design the data model, provision the backend (app key, database tables, channels, AI agents, serverless functions), and scaffold a working Vite + React + @muhkoo/connect client with ZK auth. Use when the user wants to build, scaffold, or prototype an app on Muhkoo, or asks to "build me a … app on Muhkoo".
+description: Build a complete application on the Muhkoo platform from a plain-language idea — design the data model, provision the backend (app key, database tables, channels, AI agents, serverless functions), and scaffold a working client. Two templates: a full Vite + React + @muhkoo/connect app with ZK auth, or a lightweight statically-hosted website (no auth/SDK, optional email-list function). Use when the user wants to build, scaffold, or prototype an app or static site on Muhkoo, or asks to "build me a … app on Muhkoo".
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -22,6 +22,23 @@ ZK auth · a scalable database (`client.db`) · E2E-encrypted realtime channels
 serverless functions · **hosting** — every app gets a DNS subdomain
 `https://<slug>.apps.muhkoo.dev` and can be deployed there (step 7). The SDK is
 `@muhkoo/connect`. Full surface: [references/platform.md](references/platform.md).
+
+## Choosing a template
+
+Before designing, pick the template that fits the idea — they share the same
+provisioning + hosting machinery, only the client differs:
+
+- **`templates/starter-app`** (default) — a full Vite + React + `@muhkoo/connect`
+  app with **ZK auth**, database, channels, agents. Use when users log in or the
+  app has per-user data, realtime, or AI.
+- **`templates/static-site`** — a lightweight **statically-hosted website**: plain
+  HTML/CSS/JS (Vite), **no auth, no SDK, no ZK**. Use for landing pages, marketing
+  sites, docs, portfolios — anything with no logged-in users. It can still call
+  **one optional serverless function** (e.g. an email list — `functions/subscribe.js`).
+  See the [static-site scaffold](scaffolds/static-site.md).
+
+If unsure, ask (AskUserQuestion). Most of the workflow below assumes the full app;
+the **Static websites** note under step 4 covers how the static path differs.
 
 ## Workflow
 
@@ -132,6 +149,26 @@ read the relevant ones as you build:
 
 Each scaffold lists its edits + a contract; re-run the suite after applying.
 
+**Static websites (`templates/static-site`).** When you picked the static template,
+the workflow collapses — there's no auth, DB, channels, or SDK to wire:
+- **Step 2 (design):** no `tables`/`channels`/`agents`. The provision spec is just a
+  `slug` + `allowedOrigins` (and `functions[]` only if the site needs the email-list
+  / contact endpoint). You can even skip provisioning a backend entirely and just
+  create the app for its hosting slug.
+- **Step 3 (provision):** same `provision.mjs`. To use the email list, add a
+  `subscribers` table (`tables[]`) and the `subscribe` function (`functions[]`,
+  paid tier) pointing at `functions/subscribe.js`; then set `VITE_SUBSCRIBE_URL` in
+  `.env.local` to the printed function URL.
+- **Step 4 (scaffold):** `cp -R <skill-dir>/templates/static-site <target-dir>`, then
+  `npm install` (no `--install-links` — there's no `file:` SDK dep). Edit
+  `index.html` / `src/style.css` / `src/main.js`. The design pass still applies
+  (it's just a website — make it good); there's no preservation contract beyond
+  keeping it responsive.
+- **Step 6 (verify):** `npm run dev`, eyeball it; if you added the function, submit
+  the form and confirm a row lands in the `subscribers` table.
+- **Step 7 (host):** identical — `npm run deploy` ships `dist/` to
+  `<slug>.apps.muhkoo.dev`.
+
 If the design has an agent: edit `src/agent/agentApp.ts` (the `@Muhkoo*`-decorated
 description — see [references/decorators.md](references/decorators.md)), then eject:
 
@@ -201,7 +238,7 @@ status: the `/hosting` API in the reference.
 
 On a **paid plan**, the user can also serve the app on **their own domain** — that's a
 portal action (the app's **Custom domains** card: add the hostname, then add the two
-CNAMEs it shows at their DNS provider; Cloudflare auto-issues + renews the cert). Worth
+CNAMEs it shows at their DNS provider; the TLS cert is auto-issued and renewed). Worth
 mentioning when you offer hosting; details in [references/hosting.md](references/hosting.md).
 
 ### 8 — Harvest a scaffold (optional, but do it when the build taught you something)

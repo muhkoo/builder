@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your site · built on Muhkoo</title>
+    <meta name="description" content="A statically-hosted site on Muhkoo." />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <p class="eyebrow">Statically hosted on Muhkoo</p>
+        <h1>Ship a fast, secure site.</h1>
+        <p class="lede">
+          This is your starting point — edit <code>index.html</code> and
+          <code>src/style.css</code>, then <code>npm run deploy</code> to publish
+          to <code>&lt;slug&gt;.apps.muhkoo.dev</code>.
+        </p>
+
+        <!--
+          Email capture → an optional Muhkoo serverless function (functions/subscribe.js).
+          Set VITE_SUBSCRIBE_URL in .env.local to the deployed function URL
+          (subscribe--<slug>.fns.muhkoo.dev). If unset, the form is hidden.
+        -->
+        <form id="signup" class="signup" hidden>
+          <input
+            id="signup-email"
+            type="email"
+            name="email"
+            inputmode="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            aria-label="Email address"
+            required
+          />
+          <button type="submit">Notify me</button>
+          <p id="signup-status" class="signup-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

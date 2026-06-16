@@ -1,0 +1,17 @@
+{
+  "name": "muhkoo-static-site",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "A statically-hosted website scaffolded by the Muhkoo app-builder plugin.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && node scripts/deploy.mjs",
+    "deploy:hosting": "npm run build && node scripts/deploy.mjs"
+  },
+  "devDependencies": {
+    "vite": "^8.0.12"
+  }
+}
