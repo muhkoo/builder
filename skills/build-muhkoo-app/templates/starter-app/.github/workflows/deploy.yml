@@ -31,7 +31,7 @@ jobs:
         env:
           VITE_MUHKOO_KEY: ${{ secrets.VITE_MUHKOO_KEY }}
           VITE_WORKER_URL: https://api.muhkoo.dev
-      - run: node scripts/deploy.mjs
+      - run: npx -y @muhkoo/cli deploy
         env:
           MUHKOO_DEPLOY_KEY: ${{ secrets.MUHKOO_DEPLOY_KEY }}
           MUHKOO_APP_ID: ${{ secrets.MUHKOO_APP_ID }}

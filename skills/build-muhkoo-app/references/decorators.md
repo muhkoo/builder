@@ -70,10 +70,11 @@ export const standupAgentTools  = (): AgentToolsConfig => ejectAgentTools(Standu
 
 ## Ejecting from the command line
 
-Decorators need `experimentalDecorators`. Run the bundled helper with `tsx`:
+Decorators need `experimentalDecorators` (the template's tsconfig has it). Eject with
+the Muhkoo CLI:
 
 ```bash
-node skills/build-muhkoo-app/scripts/eject-agent.mjs path/to/agentApp.ts
+muhkoo eject path/to/agentApp.ts
 # prints:  ===== system prompt =====  …   ===== tools config =====  { … }
 ```
 

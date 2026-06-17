@@ -33,10 +33,10 @@ export const agentPrompt = () => ejectAgentPrompt(AgentApp);
 export const agentTools  = () => ejectAgentTools(AgentApp);
 ```
 
-Eject (`node scripts/eject-agent.mjs src/agent/agentApp.ts`) and put the result in the
+Eject (`muhkoo eject src/agent/agentApp.ts`) and put the result in the
 provision spec's `agents[]` (`systemPrompt`, `tools`, a **function-calling** `model`,
-`triggers: [{ type: "mention" }]`, `enableChannel`). Then `provision.mjs` creates + enables
-it. The same thing via the SDK: `client.agents.create(appId, { handle, displayName,
+`triggers: [{ type: "mention" }]`, `enableChannel`). Then `muhkoo provision` creates +
+enables it. The same thing via the SDK: `client.agents.create(appId, { handle, displayName,
 systemPrompt, model, tools })` then `client.agents.enable(appId, agentId, spaceId)`.
 
 ## Gotchas

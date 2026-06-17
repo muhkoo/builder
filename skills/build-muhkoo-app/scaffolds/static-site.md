@@ -18,8 +18,7 @@ templates/static-site/
 ├── src/style.css           # clean baseline styles (restyle in the design pass)
 ├── vite.config.js          # no wasm/polyfill plugins — it's a static site
 ├── functions/subscribe.js  # optional Muhkoo email-list function (paid tier)
-├── scripts/deploy.mjs      # same content-addressed hosting deploy as starter-app
-├── .github/workflows/deploy.yml
+├── .github/workflows/deploy.yml   # CI: build + `muhkoo deploy`
 └── .env.example            # VITE_SUBSCRIBE_URL (only if using the function)
 ```
 

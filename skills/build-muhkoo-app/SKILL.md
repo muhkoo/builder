@@ -65,33 +65,35 @@ working directory.
 
 ### 3 — Provision the backend
 
-Read [references/provisioning.md](references/provisioning.md) for the auth model and
-exact request shapes. Provisioning is developer-authenticated (`Authorization:
-Bearer <session token>`) — **not** the app key.
+All provisioning, hosting, and agent-eject is driven by the **Muhkoo CLI**
+(`@muhkoo/cli`). [references/provisioning.md](references/provisioning.md) is the
+platform API contract behind it (spec shape + request semantics) — read it to shape
+the spec, but you run the CLI, not raw HTTP. Install it once:
 
-Resolve a developer session, preferring the programmatic path:
-- **Programmatic:** ask the user for their Muhkoo username/password (or have them set
-  `MUHKOO_USERNAME` / `MUHKOO_PASSWORD`); `provision.mjs` logs in via the SDK. This
-  needs `@muhkoo/connect` resolvable from the run directory — run it from the
-  scaffolded app after `npm install` (step 4), or from any dir where the SDK is
-  installed.
-- **Fallback:** have the user sign into the [portal](https://portal.muhkoo.dev) and
-  paste their session token (`--token`), **or** create the app in the portal UI and
-  paste the `mk_test_pk_*` key (then provision tables in the portal too).
+```bash
+npm install -g @muhkoo/cli      # or prefix every command with: npx -y @muhkoo/cli
+```
 
-Run the provisioner (it's idempotent; writes `.muhkoo-app.json` with the app id +
+**Sign in** (developer-authenticated — the CLI stores a session token in
+`~/.muhkoo/config.json`):
+
+```bash
+muhkoo login --web              # browser sign-in (password / passkey / Google)
+# or: muhkoo login              # zero-knowledge login in the terminal (prompts)
+# non-interactive / CI: export MUHKOO_DEV_TOKEN=<session token from the portal>
+```
+
+**Provision** from the spec (idempotent; writes `.muhkoo-app.json` with the app id +
 keys):
 
 ```bash
-node <skill-dir>/scripts/provision.mjs --spec app.json --base prod \
-  --username "$MUHKOO_USERNAME" --password "$MUHKOO_PASSWORD"
-# or: --token <sessionToken>     (paste from the portal)
+muhkoo provision --spec app.json --base prod
 # add --dry-run first to preview the calls
 ```
 
 `--base` is `staging` | `prod` | `local` (default `prod`). Capture the printed
-**test publishable key** (`mk_test_pk_*`) — the client needs it. Agents/functions
-on a free account return 402; the script skips them and saves the config for later.
+**test publishable key** (`mk_test_pk_*`) — the client needs it. Agents/functions on
+a free account return 402; the CLI skips them and saves the config for later.
 
 ### 4 — Scaffold the client
 
@@ -155,7 +157,7 @@ the workflow collapses — there's no auth, DB, channels, or SDK to wire:
   `slug` + `allowedOrigins` (and `functions[]` only if the site needs the email-list
   / contact endpoint). You can even skip provisioning a backend entirely and just
   create the app for its hosting slug.
-- **Step 3 (provision):** same `provision.mjs`. To use the email list, add a
+- **Step 3 (provision):** same `muhkoo provision`. To use the email list, add a
   `subscribers` table (`tables[]`) and the `subscribe` function (`functions[]`,
   paid tier) pointing at `functions/subscribe.js`; then set `VITE_SUBSCRIBE_URL` in
   `.env.local` to the printed function URL.
@@ -173,15 +175,15 @@ If the design has an agent: edit `src/agent/agentApp.ts` (the `@Muhkoo*`-decorat
 description — see [references/decorators.md](references/decorators.md)), then eject:
 
 ```bash
-node <skill-dir>/scripts/eject-agent.mjs <target-dir>/src/agent/agentApp.ts
+muhkoo eject <target-dir>/src/agent/agentApp.ts
 ```
 
 Put the printed `systemPrompt` + `tools` into the spec's `agents[]` entry (with a
-function-calling `model` and `enableChannel: "<channel>"`), re-run `provision.mjs`,
+function-calling `model` and `enableChannel: "<channel>"`), re-run `muhkoo provision`,
 then — **after the app has run once so the channel exists** — enable it:
 
 ```bash
-node <skill-dir>/scripts/provision.mjs --spec app.json --base prod --token <t> --enable
+muhkoo provision --spec app.json --base prod --enable
 ```
 
 ### 6 — Run, verify, debug
@@ -218,23 +220,28 @@ portal **Tools → Logs**, or the `logs/*` routes in
 ### 7 — Host it on Muhkoo (optional)
 
 Every app already has a DNS subdomain — `https://<slug>.apps.muhkoo.dev` (printed by
-`provision.mjs`). Offer to **host the client there** so the user doesn't need their own
-hosting; it's a deploy away (or skip it and run/deploy the SPA however they like). See
-[references/hosting.md](references/hosting.md) for the full contract. The template
-ships `scripts/deploy.mjs` + a GitHub Action.
+`muhkoo provision`). Offer to **host the client there** so the user doesn't need their
+own hosting; it's a deploy away (or skip it and run/deploy the SPA however they like).
+See [references/hosting.md](references/hosting.md) for the full contract. The template's
+`npm run deploy` wraps `muhkoo deploy` (build + ship), and a GitHub Action does the same.
 
 ```bash
 cd <target-dir>
-MUHKOO_DEPLOY_KEY=<app secret key mk_*_sk_*>  MUHKOO_APP_ID=<appId>  npm run deploy
-# builds, uploads only changed files (content-addressed), commits a release, prints the URL
+npm run deploy            # builds, then runs `muhkoo deploy`
+# equivalently, from a provisioned dir (.muhkoo-app.json present):
+#   npm run build && muhkoo deploy
+# or fully explicit:
+#   npm run build && muhkoo deploy --app <appId> --key <mk_*_sk_*>
 ```
 
-Deploys are authorized by the app's **secret key** (`mk_*_sk_*`) — server-side only,
-never the browser bundle. Hosted bytes count against the account's **storage quota**.
-For CI, wire the bundled `.github/workflows/deploy.yml`: set repo secrets
-`MUHKOO_DEPLOY_KEY` (sk), `MUHKOO_APP_ID`, and `VITE_MUHKOO_KEY` (pk) — it builds +
-deploys on every push to `main`. Rollback / release history (last 10, deletable) /
-status: the `/hosting` API in the reference.
+`muhkoo deploy` reads the app id + secret key from `.muhkoo-app.json` (or `--app` /
+`--key` / `MUHKOO_APP_ID` / `MUHKOO_DEPLOY_KEY`). Deploys are authorized by the app's
+**secret key** (`mk_*_sk_*`) — server-side only, never the browser bundle. Hosted bytes
+count against the account's **storage quota**. For CI, wire the bundled
+`.github/workflows/deploy.yml`: set repo secrets `MUHKOO_DEPLOY_KEY` (sk),
+`MUHKOO_APP_ID`, and `VITE_MUHKOO_KEY` (pk) — it builds + deploys on every push to
+`main`. Rollback / release history / status: `muhkoo hosting …` (or the `/hosting` API
+in the reference).
 
 On a **paid plan**, the user can also serve the app on **their own domain** — that's a
 portal action (the app's **Custom domains** card: add the hostname, then add the two

@@ -3,6 +3,21 @@
 All notable changes to the **Muhkoo App Builder** plugin. Pre-1.0: new
 backward-compatible features bump the minor, fixes bump the patch.
 
+## 0.3.0
+
+### Changed
+
+- **Adopted the `@muhkoo/cli` everywhere.** Login, provisioning, agent eject, and
+  hosting deploys now run through the `muhkoo` CLI instead of bundled scripts:
+  - `SKILL.md` and the references (`provisioning.md`, `hosting.md`, `platform.md`,
+    `decorators.md`) use `muhkoo login` / `muhkoo provision` / `muhkoo eject` /
+    `muhkoo deploy`.
+  - Both templates' `package.json` deploy scripts and CI workflows call
+    `npx -y @muhkoo/cli deploy`.
+  - Removed the bundled `provision.mjs`, `eject-agent.mjs`, `_eject-runner.ts`, and
+    the templates' `deploy.mjs` (kept `extract-scaffold.mjs`). Requires
+    `@muhkoo/cli` (on npm).
+
 ## 0.2.6
 
 ### Added

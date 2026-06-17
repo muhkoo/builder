@@ -1,9 +1,9 @@
 # Provisioning reference
 
 How the backend of a Muhkoo app is created. This is the **developer-authenticated**
-surface (distinct from the app-key runtime SDK). The `scripts/provision.mjs` helper
-implements all of this; this doc is the contract it follows and the source of truth if
-you provision by hand.
+surface (distinct from the app-key runtime SDK). The **Muhkoo CLI** (`muhkoo login`
++ `muhkoo provision`) implements all of this; this doc is the contract it follows and
+the source of truth if you provision by hand.
 
 ## Authentication: `Authorization: Bearer <developer-session-token>`
 
@@ -15,23 +15,21 @@ session token** in the `Authorization: Bearer` header (verified in the accelerat
 > `X-Muhkoo-Session` (end-user session) — those do not authenticate these management
 > routes. Provisioning is raw HTTP with a Bearer dev token.
 
-### Getting a developer session token (two paths)
+### Getting a developer session token
 
-1. **Programmatic (preferred).** Log in as the developer with ZK auth and use the
-   resulting token as the Bearer:
-   ```js
-   const client = new Client({ baseUrl });
-   await client.auth.zk.login(username, password);
-   const token = client.auth.zk.token; // ← use as Authorization: Bearer
-   ```
-   Requires the developer's Muhkoo credentials (read from env / a local config — never
-   hard-code). ZK login in Node needs the `snarkjs` peer dep + circuit assets; if that
-   isn't available in the environment, fall back to path 2.
+The CLI handles this for you — `muhkoo login --web` (browser) or `muhkoo login`
+(terminal ZK login) authenticates the developer and stores the session token in
+`~/.muhkoo/config.json`; subsequent `muhkoo` commands send it as the Bearer. For CI
+or non-interactive runs, set `MUHKOO_DEV_TOKEN` (copy a session token from the
+[portal](https://portal.muhkoo.dev)) or pass `--token`.
 
-2. **Paste a token (fallback).** The developer signs into the
-   [portal](https://portal.muhkoo.dev) and copies their session token (the value the
-   portal stores after login), or creates the app in the portal UI and pastes the
-   resulting `mk_*` key. `provision.mjs` accepts a token or a pre-made app key.
+If you provision by hand instead, the same token works as `Authorization: Bearer`. It
+comes from a ZK login:
+```js
+const client = new Client({ baseUrl });
+await client.auth.zk.login(username, password);
+const token = client.auth.zk.token; // ← use as Authorization: Bearer
+```
 
 ## Route table (all under the production/staging API base)
 
@@ -185,5 +183,6 @@ Space-triggered functions auto-run on matching messages once enabled on a channe
 4. (paid) create agents / deploy functions →
 5. enable agents/functions on channels **after** the channels exist.
 
-`provision.mjs` records `{ appId, keys, tables }` to a local `.muhkoo-app.json` so
-re-runs are idempotent and the scaffold step can read the app key back.
+`muhkoo provision` records `{ appId, keys, tables }` to a local `.muhkoo-app.json` so
+re-runs are idempotent and the scaffold step (and `muhkoo deploy`) can read the keys
+back.

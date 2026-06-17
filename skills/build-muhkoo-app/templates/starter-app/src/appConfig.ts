@@ -17,7 +17,7 @@ export interface AppField {
 
 /**
  * The primary database table this app reads/writes. Provisioned by the backend
- * (see ../../scripts/provision.mjs). The server adds `_id` (the row id) and you
+ * (via `muhkoo provision`). The server adds `_id` (the row id) and you
  * typically add a `created_at` timestamp for ordering — neither is listed here.
  */
 export const TABLE: { name: string; fields: AppField[] } = {

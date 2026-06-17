@@ -8,8 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && node scripts/deploy.mjs",
-    "deploy:hosting": "npm run build && node scripts/deploy.mjs"
+    "deploy": "npm run build && npx -y @muhkoo/cli deploy",
+    "deploy:hosting": "npm run build && npx -y @muhkoo/cli deploy"
   },
   "devDependencies": {
     "vite": "^8.0.12"

@@ -13,19 +13,23 @@ as a bearer token, or a developer session. The secret key is server-side only �
 **never** ship it in the browser bundle (that's the publishable `pk`). In CI it's a
 repository secret (`MUHKOO_DEPLOY_KEY`). Rotate/revoke it in the portal like any key.
 
-## The easy path — `deploy.mjs`
+## The easy path — `muhkoo deploy`
 
-The starter template ships `scripts/deploy.mjs`. From the app dir:
+Deploys go through the **Muhkoo CLI** (`@muhkoo/cli`). From the app dir:
 
 ```bash
 npm run build
-MUHKOO_DEPLOY_KEY=mk_live_sk_…  MUHKOO_APP_ID=<appId>  node scripts/deploy.mjs
-# or just: npm run deploy   (build + deploy)
+muhkoo deploy
+# reads app id + secret key from .muhkoo-app.json; or pass them:
+#   muhkoo deploy --app <appId> --key mk_live_sk_…
+#   (or set MUHKOO_APP_ID / MUHKOO_DEPLOY_KEY)
 # --base prod|staging|local  (default prod)
+# or just: npm run deploy    (build + `muhkoo deploy`)
 ```
 
 It walks `dist/`, sha256s each file, `PUT`s only the changed blobs (dedup), commits
-the release, and prints the live URL.
+the release, and prints the live URL. Manage releases with `muhkoo hosting
+status|rollback|rm-release|unpublish` and domains with `muhkoo domains`.
 
 ## GitHub CI/CD
 
@@ -63,8 +67,8 @@ releases** (the live one is always kept); older ones auto-prune on deploy.
 
 An app can also be served on the developer's **own domain** (`app.theircompany.com`)
 via Cloudflare for SaaS — they keep their domain at any DNS provider, and Cloudflare
-issues + auto-renews the TLS cert. This is a **portal action**, not something
-`provision.mjs` automates: portal → the app → **Custom domains** → add the hostname,
+issues + auto-renews the TLS cert. Attach one with `muhkoo domains add <appId>
+<hostname>` (or in the portal → the app → **Custom domains**) → add the hostname,
 then add the two CNAMEs it shows at their DNS provider (a traffic CNAME to
 `cname.muhkoo.io` + a one-time `_acme-challenge` CNAME). It's a paid-plan feature.
 
