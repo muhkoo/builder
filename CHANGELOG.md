@@ -3,6 +3,64 @@
 All notable changes to the **Muhkoo App Builder** plugin. Pre-1.0: new
 backward-compatible features bump the minor, fixes bump the patch.
 
+## 0.4.0 — 2026-10-13
+
+Brings the plugin in line with `@muhkoo/connect` 0.15.0-alpha.5 and the platform's
+paid-only and past-due behaviour.
+
+### Added
+
+- **Payment refusals in the starter app.** A write refused for payment (the app is
+  "Paid Muhkoo accounts only" and the user is on Free, or a payment is past due) now
+  shows a notice instead of a raw error. One helper, `src/lib/paymentErrors.ts`, maps
+  the SDK's `PaymentRequiredError` codes: `user_plan_required` → "This app needs a paid
+  Muhkoo plan." + Upgrade link; `user_payment_past_due` → "Your Muhkoo payment is past
+  due — update your payment method." + link; `owner_payment_past_due` → "This app can't
+  save changes right now." with no action. Links are only ever absolute http(s) URLs.
+  `RecordsBoard` (load, add, toggle, delete — toggle and delete had no error handling)
+  and `ChannelChat` (channel setup, send) use it, through a new `NoticeAlert` component.
+- **Access banner.** `AuthContext` calls `client.app.access()` after sign-in and each
+  time the tab becomes visible again, failing open (a 404 from an older server, or any
+  error, counts as allowed). A refusal shows a warning banner with the upgrade link in
+  the app shell (`data-cy="access-banner"`).
+- **`scaffolds/api-payments.md`** — the pattern above, plus the gotchas: which 402s are
+  and aren't `PaymentRequiredError`, live-socket sends not surfaced, the offline queue
+  keeping refused writes (`SYNC_ERROR` with `dropped: false`, `queue.waiting()`,
+  `offline.resume()`), and never calling `access()` from `SYNC_COMPLETE`.
+- **`references/platform.md` → "Payments & access"**: `PaymentRequiredError` and its
+  codes, `client.app.access()`, the offline-queue behaviour, and where the owner's
+  paid-only switch lives (portal → the app → Deploy tab; not a provision-spec field).
+
+### Changed
+
+- **Template depends on `@muhkoo/connect` `^0.15.0-alpha.5`** (was `^0.7.0-alpha.4`).
+  `SKILL.md` step 4 now treats the published npm release as the default; a `file:`
+  checkout (with `npm install --install-links`) is only for SDK development.
+- **Sign-out sticks.** After the app's own sign-out, the next "Continue with Muhkoo"
+  passes `prompt: "login"`, so a browser remembered with "Keep me signed in" doesn't
+  sign the user straight back in. The flag survives a reload and clears on the next
+  completed sign-in. `scaffolds/api-auth-hosted.md` documents this and the "Continue
+  as …" screen.
+- **Dropped `vite-plugin-top-level-await` from the starter.** Its latest release
+  (1.6.0) fails the production build under `@swc/core` 1.16 ("missing field `type`"),
+  which a fresh install now pulls. `build.target: "esnext"` keeps top-level `await`
+  native, so the plugin isn't needed.
+- `references/platform.md`: current SDK version, the full namespace list (`vfs`, `vcs`,
+  `trust`, `accessTokens`, `app`, `offline`), `ClientOptions`, hosted-login `prompt` /
+  `returnTo`, and signed private channels.
+- Wording: "ZK auth" → hosted sign-in ("Continue with Muhkoo") in the skill
+  description, `SKILL.md`, `README.md`, the marketplace entry and the plugin keywords;
+  `scaffolds/api-auth.md` now opens with a "prefer hosted sign-in" note.
+- A 402 can now also be a payment refusal, not just a tier limit: noted in `SKILL.md`
+  step 3, `scaffolds/api-agents.md` and `scaffolds/api-functions.md`
+  (`client.functions.invoke` returns the raw `Response`, so check the `code` yourself).
+- `references/provisioning.md`: the paid-only switch is a portal toggle.
+- `README.md`: layout tree lists `scaffolds/` and both templates under
+  `skills/build-muhkoo-app/templates/`, and the scripts line names
+  `extract-scaffold.mjs` (the provisioning scripts were removed in 0.3.0); the custom
+  domain line no longer names the infrastructure provider. Starter `README.md`
+  install, structure and deploy sections updated to match.
+
 ## 0.3.0
 
 ### Changed

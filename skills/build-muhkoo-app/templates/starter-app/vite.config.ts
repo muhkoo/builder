@@ -1,28 +1,32 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import wasm from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 /**
- * Vite config for a Muhkoo app. The wasm / top-level-await / node-polyfills
- * plugins are required because Muhkoo's ZK auth runs snarkjs + circomlibjs in
- * the browser (they need WebAssembly, top-level `await`, and Node's `Buffer`).
+ * Vite config for a Muhkoo app. The wasm and node-polyfills plugins are
+ * required because the SDK's sign-in crypto runs snarkjs + circomlibjs in the
+ * browser (they need WebAssembly and Node's `Buffer`). Top-level `await` needs
+ * no plugin: `build.target: "esnext"` keeps it native (every current browser
+ * runs it). The app-builder dropped vite-plugin-top-level-await in 0.4.0: its
+ * 1.6.0 breaks the production build under @swc/core 1.16 ("missing field
+ * `type`").
  *
  * The app talks to the API at `VITE_WORKER_URL` (see `.env.local`). The SDK
  * derives every endpoint — REST, WebSocket, ZK circuit assets — from that one
  * base URL, and the app's CORS allowlist (`*` by default) lets localhost in.
  *
- * NOTE: install with `npm install --install-links` so the `file:` @muhkoo/connect
- * dependency is COPIED (not symlinked). The SDK's browser build imports the
- * node-polyfill shims by bare specifier; with a symlink the bundler resolves
- * them from the SDK's realpath and the build/dev server break.
+ * NOTE: with the npm release of @muhkoo/connect a plain `npm install` is fine. If
+ * you point it at a local checkout (`file:`), install with
+ * `npm install --install-links` so the SDK is COPIED (not symlinked). The
+ * SDK's browser build imports the node-polyfill shims by bare specifier; with a
+ * symlink the bundler resolves them from the SDK's realpath and the build/dev
+ * server break.
  */
 export default defineConfig({
   plugins: [
     react(),
     wasm(),
-    topLevelAwait(),
     nodePolyfills({
       include: ["buffer", "process", "util", "stream"],
       globals: { Buffer: true, process: true, global: true },

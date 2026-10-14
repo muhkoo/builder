@@ -2,6 +2,9 @@
  * Generic CRUD over the configured database table (see ../appConfig.ts). Reads
  * `client.db.table(TABLE.name)` and renders a list + add form. Adjust the fields
  * in appConfig.ts to match your provisioned table.
+ *
+ * Every call is wrapped: a write can be refused for payment (a paid-only app, or
+ * a past-due account), and `describeError` turns that into an upgrade notice.
  */
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -19,7 +22,9 @@ import {
 } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { getClient } from "../lib/client";
+import { describeError, type Notice } from "../lib/paymentErrors";
 import { TABLE, type AppField } from "../appConfig";
+import { NoticeAlert } from "./NoticeAlert";
 
 type Row = Record<string, unknown> & { _id?: string | number };
 
@@ -32,7 +37,7 @@ function emptyDraft(): Record<string, unknown> {
 export function RecordsBoard() {
   const [rows, setRows] = useState<Row[]>([]);
   const [draft, setDraft] = useState<Record<string, unknown>>(emptyDraft());
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Notice | null>(null);
   const [loading, setLoading] = useState(true);
 
   const table = getClient().db.table<Row>(TABLE.name);
@@ -43,7 +48,7 @@ export function RecordsBoard() {
       const res = await table.query({ limit: 100 });
       setRows(res.rows);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(describeError(e));
     } finally {
       setLoading(false);
     }
@@ -63,20 +68,30 @@ export function RecordsBoard() {
       setDraft(emptyDraft());
       await refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(describeError(e));
     }
   }
 
   async function toggleBool(row: Row, field: AppField) {
     if (row._id == null) return;
-    await table.update(row._id, { [field.name]: !row[field.name] });
-    await refresh();
+    setError(null);
+    try {
+      await table.update(row._id, { [field.name]: !row[field.name] });
+      await refresh();
+    } catch (e) {
+      setError(describeError(e));
+    }
   }
 
   async function remove(row: Row) {
     if (row._id == null) return;
-    await table.delete(row._id);
-    await refresh();
+    setError(null);
+    try {
+      await table.delete(row._id);
+      await refresh();
+    } catch (e) {
+      setError(describeError(e));
+    }
   }
 
   const boolField = TABLE.fields.find((f) => f.type === "boolean");
@@ -133,9 +148,9 @@ export function RecordsBoard() {
       </Paper>
 
       {error && (
-        <Typography color="error" variant="body2" sx={{ mb: 1 }}>
-          {error}
-        </Typography>
+        <Box sx={{ mb: 1 }}>
+          <NoticeAlert notice={error} onClose={() => setError(null)} data-cy="records-error" />
+        </Box>
       )}
 
       <List>

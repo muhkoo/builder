@@ -27,8 +27,46 @@ if (client.auth.hosted.isCallback()) {
 }
 
 // the "Continue with Muhkoo" button:
-await client.auth.hosted.login({ appId, redirectUri: window.location.origin });
+await client.auth.hosted.login({
+  appId,
+  redirectUri: window.location.origin,
+  ...(signedOutHere ? { prompt: "login" as const } : {}), // see "Sign-out" below
+});
 ```
+
+## Sign-out, "Keep me signed in" and "Continue as …"
+
+The hosted page offers **"Keep me signed in on this browser"** (opt-in). A user who
+ticked it, on any Muhkoo app, arrives at your `/authorize` redirect already known:
+
+| Redirect target | What the user sees |
+| --- | --- |
+| A Muhkoo-owned surface (portal, IDE) | Nothing — a silent hand-off. |
+| **Your app** | A **"Continue as ada?"** screen: one click, no password, plus "Use a different account". |
+
+Nothing to adopt for that — except **sign-out**. `client.auth.zk.logout()` clears
+*your app's* session; the hosted page still remembers the browser, so the next
+"Continue with Muhkoo" click would put the same user straight back in, and your
+sign-out looks broken. Pass **`prompt: "login"`** on the sign-in that follows your
+own sign-out (and on "switch account"); omit it everywhere else. The template keeps
+a `localStorage` flag set by `logout()` and cleared by a completed `handleCallback()`,
+so the intent survives a reload:
+
+```ts
+async logout() {
+  await client.auth.zk.logout();
+  localStorage.setItem("muhkoo-app:signed-out", "1");
+}
+async signIn() {
+  const signedOut = localStorage.getItem("muhkoo-app:signed-out") === "1";
+  await client.auth.hosted.login({ appId, redirectUri: location.origin,
+    ...(signedOut ? { prompt: "login" as const } : {}) });
+}
+// after handleCallback() succeeds: localStorage.removeItem("muhkoo-app:signed-out")
+```
+
+`prompt` needs `@muhkoo/connect` 0.14.0-alpha.5 or later. A remembered browser is
+revoked from `auth.muhkoo.dev/security` ("Paired browser or machine").
 
 ## Setup (one-time, in the portal)
 
@@ -58,6 +96,9 @@ credentials are only ever typed on the Muhkoo origin.
   embedded auth — only the login UI moved.
 - **`authBaseUrl` default.** Don't hard-code `auth.muhkoo.dev`; pass `authBaseUrl`
   only to override for staging (`auth.staging.muhkoo.dev`).
+- **Check access after sign-in.** A paid-only app (or one whose owner's payment is
+  past due) refuses new data — call `client.app.access()` once signed in. See
+  [api-payments.md](./api-payments.md).
 - **E2E tests.** Sign-in is a cross-origin redirect, so a test runner can't walk
   it in-app. Assert the button starts the redirect, and inject a session
   programmatically for authenticated specs.

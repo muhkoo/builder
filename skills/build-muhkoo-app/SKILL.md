@@ -1,6 +1,6 @@
 ---
 name: build-muhkoo-app
-description: Build a complete application on the Muhkoo platform from a plain-language idea — design the data model, provision the backend (app key, database tables, channels, AI agents, serverless functions), and scaffold a working client. Two templates: a full Vite + React + @muhkoo/connect app with ZK auth, or a lightweight statically-hosted website (no auth/SDK, optional email-list function). Use when the user wants to build, scaffold, or prototype an app or static site on Muhkoo, or asks to "build me a … app on Muhkoo".
+description: Build a complete application on the Muhkoo platform from a plain-language idea — design the data model, provision the backend (app key, database tables, channels, AI agents, serverless functions), and scaffold a working client. Two templates: a full Vite + React + @muhkoo/connect app with hosted sign-in ("Continue with Muhkoo"), or a lightweight statically-hosted website (no auth/SDK, optional email-list function). Use when the user wants to build, scaffold, or prototype an app or static site on Muhkoo, or asks to "build me a … app on Muhkoo".
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -17,11 +17,11 @@ reference files as you go**, don't work from memory.
 
 ## What Muhkoo gives an app
 
-ZK auth · a scalable database (`client.db`) · E2E-encrypted realtime channels
-(`client.space`) · per-user KV + file storage · AI agents that can act on the app ·
-serverless functions · **hosting** — every app gets a DNS subdomain
-`https://<slug>.apps.muhkoo.dev` and can be deployed there (step 7). The SDK is
-`@muhkoo/connect`. Full surface: [references/platform.md](references/platform.md).
+Hosted sign-in ("Continue with Muhkoo", zero-knowledge underneath) · a scalable
+database (`client.db`) · E2E-encrypted realtime channels (`client.space`) · per-user
+KV + file storage · AI agents that can act on the app · serverless functions ·
+**hosting** — every app gets a DNS subdomain `https://<slug>.apps.muhkoo.dev` and can
+be deployed there (step 7). The SDK is `@muhkoo/connect`. Full surface: [references/platform.md](references/platform.md).
 
 ## Choosing a template
 
@@ -29,10 +29,10 @@ Before designing, pick the template that fits the idea — they share the same
 provisioning + hosting machinery, only the client differs:
 
 - **`templates/starter-app`** (default) — a full Vite + React + `@muhkoo/connect`
-  app with **ZK auth**, database, channels, agents. Use when users log in or the
-  app has per-user data, realtime, or AI.
+  app with **hosted sign-in** ("Continue with Muhkoo"), database, channels, agents.
+  Use when users log in or the app has per-user data, realtime, or AI.
 - **`templates/static-site`** — a lightweight **statically-hosted website**: plain
-  HTML/CSS/JS (Vite), **no auth, no SDK, no ZK**. Use for landing pages, marketing
+  HTML/CSS/JS (Vite), **no sign-in, no SDK**. Use for landing pages, marketing
   sites, docs, portfolios — anything with no logged-in users. It can still call
   **one optional serverless function** (e.g. an email list — `functions/subscribe.js`).
   See the [static-site scaffold](scaffolds/static-site.md).
@@ -93,7 +93,12 @@ muhkoo provision --spec app.json --base prod
 
 `--base` is `staging` | `prod` | `local` (default `prod`). Capture the printed
 **test publishable key** (`mk_test_pk_*`) — the client needs it. Agents/functions on
-a free account return 402; the CLI skips them and saves the config for later.
+a free account return 402; the CLI skips them and saves the config for later. A 402
+can also be a **payment refusal** rather than a tier limit: the app is set to "Paid
+Muhkoo accounts only" and the user is on Free, or a payment is past due (the user's
+or the app owner's). Those carry a `code` (`user_plan_required`,
+`user_payment_past_due`, `owner_payment_past_due`) — see
+[references/platform.md](references/platform.md#payments--access).
 
 ### 4 — Scaffold the client
 
@@ -105,25 +110,32 @@ cd <target-dir>
 ```
 
 Then:
-1. **Wire the `@muhkoo/connect` dependency** in `package.json`. In order of
-   preference: (a) the published npm version if it exists (`npm view @muhkoo/connect
-   version`); (b) a relative `file:` path to a local `connect` checkout; (c) a
-   tarball from `npm pack` in the connect repo. The template defaults to
-   `file:../connect` — fix the relative path to wherever `connect` actually is.
+1. **Check the `@muhkoo/connect` dependency** in `package.json`. The template
+   depends on the published npm release (`^0.15.0-alpha.5`; on a `0.x` prerelease a
+   caret stays below `0.16`). Leave it unless `npm view @muhkoo/connect version`
+   shows a newer minor you want. Only when you're developing the SDK itself, point
+   it at a local checkout with a `file:` path (or an `npm pack` tarball).
 2. **Edit `src/appConfig.ts`** to match the design: `TABLE.name` + `fields[]` (one
    per column the UI edits) and `CHANNEL` (or `null` to drop the chat tab).
 3. **Write `.env.local`** from `.env.example`: `VITE_MUHKOO_KEY=<the test pk>` and
    `VITE_WORKER_URL=https://api.muhkoo.dev` (or staging).
-4. **Install.** With a `file:` connect dep, use `npm install --install-links` — this
-   *copies* the SDK (and installs its deps fresh) instead of symlinking it. A plain
-   `npm install` symlinks, which leaks the SDK's dev `node_modules` into the bundle
-   and breaks `npm run build`. (With a published npm version, plain `npm install` is
-   fine.) Re-run after any SDK change.
+4. **Install.** `npm install`. (Only with a `file:` connect dep: use
+   `npm install --install-links`, which *copies* the SDK instead of symlinking it — a
+   symlink leaks the SDK's dev `node_modules` into the bundle and breaks
+   `npm run build`. Re-run after any SDK change.)
 
-The template (`RecordsBoard`, `ChannelChat`, ZK `AuthScreen`) is the **functional
-baseline** — generic MUI, driven by `appConfig.ts`. For richer UIs, edit/add feature
-components against the SDK ([references/platform.md](references/platform.md)). The
+The template (`RecordsBoard`, `ChannelChat`, the "Continue with Muhkoo" `AuthScreen`)
+is the **functional baseline** — generic MUI, driven by `appConfig.ts`. For richer
+UIs, edit/add feature components against the SDK ([references/platform.md](references/platform.md)). The
 worked, production reference is the chat app in the `muhkoo/web` repo.
+
+**Payment refusals are already handled.** An app's owner can switch on "Paid Muhkoo
+accounts only" (portal → the app → **Deploy** tab), and an owner whose payment is
+past due gets their app's writes refused for everyone. The template turns the SDK's
+`PaymentRequiredError` into a notice with an Upgrade link (`src/lib/paymentErrors.ts`)
+and checks `client.app.access()` after sign-in to show a banner. Keep both when you
+add features — wrap every write in the same `describeError` handling. Pattern:
+[scaffolds/api-payments.md](scaffolds/api-payments.md).
 
 **Design pass (do this — don't ship the default MUI look).** Give the app a
 distinctive, production-grade aesthetic with the **`frontend-design`** skill: invoke
@@ -162,7 +174,7 @@ the workflow collapses — there's no auth, DB, channels, or SDK to wire:
   paid tier) pointing at `functions/subscribe.js`; then set `VITE_SUBSCRIBE_URL` in
   `.env.local` to the printed function URL.
 - **Step 4 (scaffold):** `cp -R <skill-dir>/templates/static-site <target-dir>`, then
-  `npm install` (no `--install-links` — there's no `file:` SDK dep). Edit
+  `npm install` (there's no SDK dependency). Edit
   `index.html` / `src/style.css` / `src/main.js`. The design pass still applies
   (it's just a website — make it good); there's no preservation contract beyond
   keeping it responsive.
@@ -194,7 +206,7 @@ cd <target-dir> && npm run dev      # http://localhost:5173
 
 **Run the Cypress suite — this is how you verify the built app actually works.** The
 template ships an end-to-end suite (`cypress/e2e/`) that drives the *real* backend:
-ZK register/login, the database CRUD, and the channel round-trip. One command boots
+the sign-in entry, the database CRUD, and the channel round-trip. One command boots
 the dev server and runs it headless:
 
 ```bash
@@ -213,7 +225,7 @@ Also confirm by hand if useful (register → add a record → send a channel mes
 portal **Tools → Logs**, or the `logs/*` routes in
 [references/platform.md](references/platform.md).
 
-> Gotcha: Cypress runs against `npm run dev`, which needs the SDK installed with
+> Gotcha: Cypress runs against `npm run dev`; with a `file:` SDK dep that needs
 > `--install-links` (step 4). The suite hits the live backend, so the app must be
 > provisioned and `.env.local` filled in first.
 

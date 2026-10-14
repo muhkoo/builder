@@ -68,6 +68,9 @@ Authorization: Bearer <devToken>
 - **First app for a brand-new developer**: the response asks for a billing `email`.
   Either pre-call `POST /api/developer/bootstrap { email }`, or resend create with
   `{ slug, allowedOrigins?, email }`.
+- **"Paid Muhkoo accounts only"** is not a spec field: the owner switches it on in the
+  portal (the app → **Deploy** tab, live environment). The client must then handle
+  refused writes — see [platform.md](./platform.md#payments--access).
 
 **Response** (`plaintext` keys are shown **once** — capture them now):
 

@@ -14,10 +14,12 @@ import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { AuthScreen } from "./auth/AuthScreen";
 import { RecordsBoard } from "./features/RecordsBoard";
 import { ChannelChat } from "./features/ChannelChat";
+import { NoticeAlert } from "./features/NoticeAlert";
+import { paymentNotice } from "./lib/paymentErrors";
 import { APP_NAME, CHANNEL } from "./appConfig";
 
 function Home() {
-  const { username, logout, manageAccount } = useAuth();
+  const { username, logout, manageAccount, access } = useAuth();
   const [tab, setTab] = useState(0);
 
   return (
@@ -48,6 +50,16 @@ function Home() {
       </AppBar>
 
       <Container maxWidth="md" sx={{ py: 3 }}>
+        {/* Paid-only app or a payment past due: reads still work, new data is refused. */}
+        {access && (
+          <Box sx={{ mb: 2 }}>
+            <NoticeAlert
+              severity="warning"
+              notice={paymentNotice(access.reason, access.upgradeUrl)}
+              data-cy="access-banner"
+            />
+          </Box>
+        )}
         {CHANNEL ? (
           <>
             <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>

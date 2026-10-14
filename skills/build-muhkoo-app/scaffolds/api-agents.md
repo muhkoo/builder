@@ -50,7 +50,10 @@ systemPrompt, model, tools })` then `client.agents.enable(appId, agentId, spaceI
    (`llama-3.3-70b-fp8-fast`) is slow (~100s) and narrates its tools; **`openai/gpt-oss-120b`**
    is much faster + better. `tools.enabled` requires a function-calling model. Keep
    `maxIterations` low (2–3).
-3. **Paid-tier only** — agent create/enable returns `402` on a free account.
+3. **Paid-tier only** — agent create/enable returns `402` on a free account. A `402` can
+   also be a payment refusal (a `code` of `user_plan_required` / `user_payment_past_due` /
+   `owner_payment_past_due`) — a past-due account, not the tier. See
+   [api-payments.md](./api-payments.md).
 4. **Enable AFTER the channel exists.** Enable resolves the channel's spaceId; create the
    channel (run the app once) first, then enable.
 

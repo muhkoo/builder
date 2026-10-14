@@ -1,5 +1,11 @@
 # Scaffold: `client.auth` — ZK authentication
 
+> **Prefer hosted sign-in.** New apps should use "Continue with Muhkoo"
+> ([api-auth-hosted.md](./api-auth-hosted.md)) — it's what the starter template
+> ships: no login UI, no ~6 MiB of proving circuits, and every factor (password,
+> passkey, email, Google) plus recovery handled in one place. Use the embedded
+> `client.auth.zk` flow below only when the login UX must live inside the app.
+
 **Use when** the app has users (almost always). Passwordless on the server — the
 password derives a zero-knowledge identity client-side; the server only ever sees a
 commitment. Pattern proven in `web`, `discord-clone`, `standup`, `task-board`.

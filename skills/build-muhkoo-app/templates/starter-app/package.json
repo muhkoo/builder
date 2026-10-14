@@ -20,7 +20,7 @@
   "dependencies": {
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
-    "@muhkoo/connect": "^0.7.0-alpha.4",
+    "@muhkoo/connect": "^0.15.0-alpha.5",
     "@mui/icons-material": "^6",
     "@mui/material": "^6",
     "@noble/curves": "^2.2.0",
@@ -41,7 +41,6 @@
     "typescript": "~6.0.2",
     "vite": "^8.0.12",
     "vite-plugin-node-polyfills": "^0.28.0",
-    "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.6.0",
     "wrangler": "^4.95.0"
   }

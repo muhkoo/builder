@@ -7,11 +7,16 @@ You describe what you want ("a shared task board where a team logs in, adds task
 and chats about them"). Claude designs the data model, **provisions** the backend
 (app key, database tables, channels, agents, serverless functions), and **scaffolds**
 a real Vite + React client wired to the [`@muhkoo/connect`](https://docs.muhkoo.dev)
-SDK — with ZK auth, the database, and realtime channels already working.
+SDK — with hosted sign-in ("Continue with Muhkoo"), the database, and realtime
+channels already working.
 
 ## What you get
 
-- **ZK auth** out of the box (register / login, no passwords on the server).
+- **Hosted sign-in** out of the box — a "Continue with Muhkoo" button; passwords,
+  passkeys, Google and recovery live on Muhkoo's sign-in page, and the server never
+  sees a password (zero-knowledge underneath).
+- **Paid-only apps handled** — if you switch on "Paid Muhkoo accounts only", or a
+  payment is past due, the app shows an upgrade notice instead of failing silently.
 - A **scalable database** with the tables your idea needs.
 - Realtime **channels** (end-to-end-encrypted group messaging).
 - Optionally, an **AI agent** that can act on your app (query/insert rows, post to
@@ -20,8 +25,8 @@ SDK — with ZK auth, the database, and realtime channels already working.
 - **Hosting** — every app gets a DNS subdomain `https://<slug>.apps.muhkoo.dev` and can
   be deployed there with one command (`npm run deploy`) or the bundled GitHub Action. No
   separate hosting account. On a paid plan, serve it on your **own domain** too (add it in
-  the portal + two CNAMEs; Cloudflare auto-issues the cert).
-- A **Cypress end-to-end suite** that drives the real backend (auth + DB + channel),
+  the portal + two CNAMEs; the TLS cert is issued and renewed automatically).
+- A **Cypress end-to-end suite** that drives the real backend (sign-in + DB + channel),
   so you can verify the built app actually works.
 - A **distinctive UI** — the workflow runs a design pass with the `frontend-design`
   skill (preserving the test hooks), so apps don't ship the generic default look.
@@ -56,14 +61,21 @@ design, provisions it, scaffolds + tests the client, and gives it a distinctive 
 ## Layout
 
 ```
-.claude-plugin/plugin.json     # plugin manifest
+.claude-plugin/plugin.json     # plugin manifest (+ marketplace.json)
 skills/build-muhkoo-app/
   SKILL.md                     # the workflow Claude follows
   references/                  # platform (SDK, routes, provisioning, decorators) + design pass
-  scripts/                     # provision.mjs (backend), eject-agent.mjs (agent prompt)
-  templates/starter-app/       # Vite + React + @muhkoo/connect client + Cypress suite
+  scaffolds/                   # applied patterns per SDK surface + opt-in capabilities
+  scripts/                     # extract-scaffold.mjs (harvest a scaffold from a build)
+  templates/
+    starter-app/               # Vite + React + @muhkoo/connect client + Cypress suite
+    static-site/               # plain HTML/CSS/JS site, optional email-list function
 examples/task-board/           # a complete worked app (design pass applied; suite green)
 ```
+
+Provisioning, agent eject and hosting deploys run through the
+[`@muhkoo/cli`](https://docs.muhkoo.dev/guides/cli/) (`muhkoo login` / `provision` /
+`eject` / `deploy`).
 
 ## Companion skills
 
@@ -78,7 +90,7 @@ The workflow composes with two other skills when present:
 
 - A Muhkoo developer account (created automatically on first provision, or in the
   [portal](https://portal.muhkoo.dev)).
-- Node 20+ (the provisioning script uses the global `fetch`).
+- Node 20+ (for the `muhkoo` CLI and the Vite toolchain).
 - Agents and serverless functions require a **paid** plan; database, channels, auth,
   and storage work on the free tier.
 

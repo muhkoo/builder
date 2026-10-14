@@ -1,26 +1,37 @@
 # {{APP_NAME}}
 
 A Muhkoo app — Vite + React + [`@muhkoo/connect`](https://docs.muhkoo.dev), with
-ZK auth, a database, and an end-to-end-encrypted realtime channel.
+hosted sign-in ("Continue with Muhkoo"), a database, and an end-to-end-encrypted
+realtime channel.
 
 ## Run it
 
 ```bash
-npm install --install-links  # --install-links copies a file: @muhkoo/connect dep
-cp .env.example .env.local   # fill in VITE_MUHKOO_KEY + VITE_WORKER_URL
+npm install
+cp .env.example .env.local   # fill in VITE_MUHKOO_KEY, VITE_MUHKOO_APP_ID + VITE_WORKER_URL
 npm run dev                  # http://localhost:5173
 ```
 
-> If `@muhkoo/connect` is a published npm version (not a `file:` path), a plain
-> `npm install` is fine. The `--install-links` flag matters only for `file:` deps —
-> it copies the SDK instead of symlinking it, which keeps the production build
-> (`npm run build`) working.
+> Developing against a local `connect` checkout instead of the npm release? Point
+> the dependency at it with a `file:` path and install with
+> `npm install --install-links`, which copies the SDK instead of symlinking it and
+> keeps the production build (`npm run build`) working.
 
-Register a user, then add records (database) and chat in the channel.
+Sign in, then add records (database) and chat in the channel.
+
+## Paid-only apps and past-due accounts
+
+If you switch on **Paid Muhkoo accounts only** for this app in the portal (app →
+**Deploy** tab), Free users can still sign in and read, but writes that add data
+are refused. The same happens for everyone if the app owner's payment is past due.
+The app handles both: `src/lib/paymentErrors.ts` turns the SDK's
+`PaymentRequiredError` into a message with an **Upgrade** / **Update payment**
+link, and `AuthContext` asks `client.app.access()` after sign-in so the home
+screen can show a banner before the first refused write.
 
 ## Test it (end-to-end)
 
-A Cypress suite drives the **real** backend — ZK register/login, the database CRUD,
+A Cypress suite drives the **real** backend — the sign-in entry, the database CRUD,
 and the channel round-trip:
 
 ```bash
@@ -46,10 +57,12 @@ app must be provisioned and `.env.local` filled in first — the suite hits the 
 ```
 src/
   lib/client.ts        # the @muhkoo/connect Client singleton
-  auth/                # ZK register / login
+  lib/paymentErrors.ts # payment refusals → user-facing notice + upgrade link
+  auth/                # hosted sign-in, sign-out, client.app.access()
   features/
     RecordsBoard.tsx   # CRUD over the configured DB table (client.db)
     ChannelChat.tsx    # realtime E2E channel (client.space)
+    NoticeAlert.tsx    # renders a notice (and its Upgrade link)
   agent/agentApp.ts    # (optional, paid) agent description → `npm run eject:agent`
   appConfig.ts         # table + channel the UI reads from
 ```
@@ -57,9 +70,7 @@ src/
 ## Deploy
 
 ```bash
-npm run build
-# set account_id + name in wrangler.jsonc, then:
-npx wrangler deploy
+npm run deploy       # builds, then ships dist/ to <slug>.apps.muhkoo.dev (muhkoo deploy)
 ```
 
-The build is static assets served as static assets with SPA-fallback routing.
+`.github/workflows/deploy.yml` does the same on every push to `main`.

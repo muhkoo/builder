@@ -82,7 +82,12 @@ Equivalent SDK: `client.functions.deploy(appId, { name, displayName, code, trigg
 
 ## Gotchas
 
-1. **Paid-tier only** — deploy returns `402` on a free account.
+1. **Paid-tier only** — deploy returns `402` on a free account. A `402` can also be a
+   payment refusal (a `code` of `user_plan_required` / `user_payment_past_due` /
+   `owner_payment_past_due`): a past-due account, or a paid-only app's Free user. Note
+   `client.functions.invoke` returns the raw `Response`, so check `res.status === 402`
+   and read the body's `code` yourself — it never throws `PaymentRequiredError`. See
+   [api-payments.md](./api-payments.md).
 2. **Space-trigger ≠ agent.** A Space-bound function with an `always` trigger auto-replies to
    *every* message, independent of any agent. If it's noisy, disable it in the Functions tab —
    not the agent.

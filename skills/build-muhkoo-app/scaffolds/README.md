@@ -24,7 +24,9 @@ apps (`web` chat, `discord-clone`, `standup`, the `task-board` example). These c
 | Scaffold | Use when |
 | --- | --- |
 | [api-client.md](./api-client.md) | Always — the `Client` singleton + base-URL/app-key wiring every app needs. |
-| [api-auth.md](./api-auth.md) | The app has users — ZK register/login/restore/unlock, the `ready`/`needsUnlock` gate, `commitment` as the row-scoping id. |
+| [api-auth-hosted.md](./api-auth-hosted.md) | The app has users (default) — "Continue with Muhkoo" hosted sign-in, the callback, sign-out with `prompt: "login"`. |
+| [api-auth.md](./api-auth.md) | Embedded sign-in instead of hosted — ZK register/login/restore/unlock, the `ready`/`needsUnlock` gate, `commitment` as the row-scoping id. |
+| [api-payments.md](./api-payments.md) | Always, for apps with users — `PaymentRequiredError` on writes, `client.app.access()` banner, offline writes kept for payment. |
 | [api-db.md](./api-db.md) | Persistent records (lists, tracked items) — the typed-helper layer over `client.db.table()`, real queries + pagination + the `owner`-scoping rule. |
 | [api-space.md](./api-space.md) | Realtime E2E-encrypted channels (chat/feeds) — **the keyring handshake** (wait-for-key), history, edit/delete, the `ready` gate. |
 | [api-message.md](./api-message.md) | Ephemeral/plaintext signals (presence, typing, cursors) or **1:1 DMs** (`client.message`). |
@@ -45,7 +47,7 @@ A whole **template choice** rather than an add-on (pick it at SKILL "Choosing a 
 
 | Scaffold | Use when |
 | --- | --- |
-| [static-site.md](./static-site.md) | The idea has **no logged-in users** — landing page, marketing site, docs, portfolio. The `templates/static-site` template: plain HTML/CSS/JS (no auth/SDK/ZK), hosted at `<slug>.apps.muhkoo.dev`, with an optional email-list function. |
+| [static-site.md](./static-site.md) | The idea has **no logged-in users** — landing page, marketing site, docs, portfolio. The `templates/static-site` template: plain HTML/CSS/JS (no sign-in, no SDK), hosted at `<slug>.apps.muhkoo.dev`, with an optional email-list function. |
 
 ## Adding a scaffold
 
