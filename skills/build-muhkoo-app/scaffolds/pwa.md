@@ -27,7 +27,7 @@ two ZK-specific cautions):
 ```ts
 import { VitePWA } from "vite-plugin-pwa";
 
-// …inside plugins: [ react(), wasm(), topLevelAwait(), nodePolyfills({…}),
+// …inside plugins: [ react(), wasm(), nodePolyfills({…}),
   VitePWA({
     // Ship a new SW + bundle on every deploy (no "click to refresh" prompt) — right
     // for an app where a stale bundle could cause decrypt mismatches.
